@@ -1,0 +1,125 @@
+# DeFi News Bot Configuration
+# Environment variables can be referenced using ${VAR_NAME} syntax
+# Values in .env file will override these settings
+
+app:
+  name: "DeFi News Bot"
+  environment: "development"
+  logLevel: "info"
+
+telegram:
+  botToken: "${TELEGRAM_BOT_TOKEN}"
+  allowedChatIds:
+    - "${TELEGRAM_CHAT_ID}"
+  adminChatIds:
+    - "${TELEGRAM_ADMIN_ID}"
+  pollingMode: true
+
+collectors:
+  defillama:
+    enabled: true
+    baseUrl: "https://api.llama.fi"
+    pollingIntervalMs: 300000  # 5 minutes
+    endpoints:
+      protocols: true
+      chains: true
+      tvl: true
+    watchlist: []  # Empty = track all protocols
+
+  twitter:
+    enabled: false  # Enable once you have Twitter API credentials
+    apiKey: "${TWITTER_API_KEY}"
+    apiSecret: "${TWITTER_API_SECRET}"
+    bearerToken: "${TWITTER_BEARER_TOKEN}"
+    useFilteredStream: true
+    pollIntervalMs: 60000  # 1 minute fallback
+    maxReconnectAttempts: 5
+    priorityAccounts:
+      - "DefiLlama"
+      - "PeckShieldAlert"
+      - "BlockSecTeam"
+      - "certikiAlert"
+      - "SlowMist_Team"
+      - "samczsun"
+      - "eigenlayer"
+      - "arbitrum"
+      - "Optimism"
+
+  coingecko:
+    enabled: true
+    baseUrl: "https://api.coingecko.com/api/v3"
+    apiKey: "${COINGECKO_API_KEY}"
+    pollingIntervalMs: 120000  # 2 minutes
+    watchlistIds:
+      - "ethereum"
+      - "bitcoin"
+      - "arbitrum"
+      - "optimism"
+      - "solana"
+
+alerts:
+  globalCooldownMs: 60000  # 1 minute between any alerts
+  deduplicationWindowMs: 86400000  # 24 hours
+
+  categories:
+    INCENTIVE:
+      enabled: true
+      priority: 3  # HIGH
+      cooldownMs: 300000  # 5 minutes
+      thresholds: {}
+
+    TVL_CHANGE:
+      enabled: true
+      priority: 2  # MEDIUM
+      cooldownMs: 600000  # 10 minutes
+      thresholds:
+        minChangePercent: 10
+        minTvlUsd: 1000000
+        timeframeHours: 24
+
+    TOKEN_EVENT:
+      enabled: true
+      priority: 3  # HIGH
+      cooldownMs: 300000  # 5 minutes
+      thresholds:
+        minUnlockValueUsd: 1000000
+        daysBeforeUnlock: 7
+
+    GOVERNANCE:
+      enabled: true
+      priority: 2  # MEDIUM
+      cooldownMs: 600000  # 10 minutes
+      thresholds: {}
+
+    SECURITY:
+      enabled: true
+      priority: 4  # CRITICAL
+      cooldownMs: 0  # No cooldown for security
+      thresholds:
+        minLossValueUsd: 100000
+
+    NARRATIVE:
+      enabled: true
+      priority: 1  # LOW
+      cooldownMs: 3600000  # 1 hour
+      thresholds:
+        minMentions: 5
+
+storage:
+  databasePath: "./data/defi_bot.db"
+  backupEnabled: true
+  backupIntervalHours: 24
+  maxAlertHistoryDays: 30
+
+rateLimit:
+  defillama:
+    requestsPerMinute: 25
+    burstLimit: 5
+
+  twitter:
+    requestsPerMinute: 25
+    monthlyTweetCap: 400000
+
+  coingecko:
+    requestsPerMinute: 25
+    monthlyCallLimit: 8000
