@@ -220,7 +220,7 @@ export class TelegramBot {
     logger.info('Starting Telegram bot...');
 
     if (config.telegram.pollingMode) {
-      await this.bot.launch();
+      this.bot.launch(); // Don't await - polling runs indefinitely
     } else {
       // Webhook mode - not implemented yet
       throw new Error('Webhook mode not yet implemented');
