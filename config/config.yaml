@@ -27,7 +27,7 @@ collectors:
     watchlist: []  # Empty = track all protocols
 
   twitter:
-    enabled: false  # Enable once you have Twitter API credentials
+    enabled: true  
     apiKey: "${TWITTER_API_KEY}"
     apiSecret: "${TWITTER_API_SECRET}"
     bearerToken: "${TWITTER_BEARER_TOKEN}"
