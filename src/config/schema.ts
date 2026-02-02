@@ -39,12 +39,8 @@ export const configSchema = z.object({
 
     twitter: z.object({
       enabled: z.boolean().default(false),
-      apiKey: z.string().optional(),
-      apiSecret: z.string().optional(),
-      bearerToken: z.string().optional().default(''),
-      useFilteredStream: z.boolean().default(true),
-      pollIntervalMs: z.number().min(60000).default(60000),
-      maxReconnectAttempts: z.number().min(1).default(5),
+      rapidApiKey: z.string().optional().default(''),
+      pollingIntervalMs: z.number().min(60000).default(120000),
       priorityAccounts: z.array(z.string()).default([
         'DefiLlama',
         'PeckShieldAlert',

@@ -27,13 +27,9 @@ collectors:
     watchlist: []  # Empty = track all protocols
 
   twitter:
-    enabled: true  
-    apiKey: "${TWITTER_API_KEY}"
-    apiSecret: "${TWITTER_API_SECRET}"
-    bearerToken: "${TWITTER_BEARER_TOKEN}"
-    useFilteredStream: true
-    pollIntervalMs: 60000  # 1 minute fallback
-    maxReconnectAttempts: 5
+    enabled: true
+    rapidApiKey: "${RAPIDAPI_KEY}"
+    pollingIntervalMs: 120000  # 2 minutes
     priorityAccounts:
       - "DefiLlama"
       - "PeckShieldAlert"

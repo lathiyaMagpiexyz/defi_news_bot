@@ -47,9 +47,7 @@ function mergeConfigs(yamlConfig: Record<string, unknown>): Record<string, unkno
     },
     collectors: {
       twitter: {
-        apiKey: process.env['TWITTER_API_KEY'],
-        apiSecret: process.env['TWITTER_API_SECRET'],
-        bearerToken: process.env['TWITTER_BEARER_TOKEN'],
+        rapidApiKey: process.env['RAPIDAPI_KEY'],
       },
       coingecko: {
         apiKey: process.env['COINGECKO_API_KEY'],
