@@ -153,8 +153,7 @@ alerts:
       enabled: true
       priority: 3  # HIGH
       cooldownMs: 600000  # 10 minutes
-      thresholds:
-        requireOfficialAccount: true  # Only from verified protocol accounts
+      thresholds: {}  # Filtered via Twitter accounts list (security + official only)
 
     # MEDIUM: Token unlocks
     TOKEN_EVENT:
