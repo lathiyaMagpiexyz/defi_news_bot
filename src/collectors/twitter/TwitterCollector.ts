@@ -107,17 +107,34 @@ export class TwitterCollector extends BaseCollector {
     });
 
     if (!response.ok) {
-      throw new Error(`RapidAPI request failed: ${response.status} ${response.statusText}`);
+      this.logger.warn(`RapidAPI request failed for @${username}: ${response.status}`);
+      return;
     }
 
-    const data = await response.json() as RapidAPISearchResponse;
+    // Handle empty or invalid JSON responses
+    const text = await response.text();
+    if (!text || text.trim() === '') {
+      this.logger.debug(`Empty response for @${username}, skipping`);
+      return;
+    }
+
+    let data: RapidAPISearchResponse;
+    try {
+      data = JSON.parse(text) as RapidAPISearchResponse;
+    } catch {
+      this.logger.debug(`Invalid JSON for @${username}, skipping`);
+      return;
+    }
+
     const tweets = data.timeline || data.results || [];
 
     for (const tweet of tweets) {
       this.processTweet(tweet, `account:${username}`);
     }
 
-    this.logger.debug(`Collected ${tweets.length} tweets from @${username}`);
+    if (tweets.length > 0) {
+      this.logger.debug(`Collected ${tweets.length} tweets from @${username}`);
+    }
   }
 
   private async searchTweets(query: string): Promise<void> {
@@ -132,10 +149,25 @@ export class TwitterCollector extends BaseCollector {
     });
 
     if (!response.ok) {
-      throw new Error(`RapidAPI search failed: ${response.status} ${response.statusText}`);
+      this.logger.warn(`RapidAPI search failed for "${query}": ${response.status}`);
+      return;
     }
 
-    const data = await response.json() as RapidAPISearchResponse;
+    // Handle empty or invalid JSON responses
+    const text = await response.text();
+    if (!text || text.trim() === '') {
+      this.logger.debug(`Empty search response for "${query}", skipping`);
+      return;
+    }
+
+    let data: RapidAPISearchResponse;
+    try {
+      data = JSON.parse(text) as RapidAPISearchResponse;
+    } catch {
+      this.logger.debug(`Invalid JSON for search "${query}", skipping`);
+      return;
+    }
+
     const tweets = data.timeline || data.results || [];
 
     for (const tweet of tweets) {
