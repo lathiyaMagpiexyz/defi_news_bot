@@ -7,6 +7,7 @@ export enum AlertCategory {
   GOVERNANCE = 'GOVERNANCE',
   SECURITY = 'SECURITY',
   NARRATIVE = 'NARRATIVE',
+  STABLECOIN_DEPEG = 'STABLECOIN_DEPEG',
 }
 
 export enum AlertPriority {
@@ -54,6 +55,9 @@ export interface AlertDetails {
 
   // Narrative-specific
   narrative?: NarrativeDetails;
+
+  // Stablecoin de-peg specific
+  stablecoinDepeg?: StablecoinDepegDetails;
 
   // Raw content
   rawContent?: string;
@@ -115,6 +119,15 @@ export interface NarrativeDetails {
   relatedProtocols?: string[];
   fundName?: string;
   trendStrength?: number;
+}
+
+export interface StablecoinDepegDetails {
+  stablecoin: string;
+  symbol: string;
+  currentPrice: number;
+  expectedPrice: number;
+  deviationPercent: number;
+  direction: 'ABOVE' | 'BELOW';
 }
 
 export interface AlertMetadata {
