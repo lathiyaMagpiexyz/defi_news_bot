@@ -8,12 +8,34 @@ if (!existsSync(logsDir)) {
   mkdirSync(logsDir, { recursive: true });
 }
 
+// Safe JSON stringify that handles circular references
+function safeStringify(obj: unknown): string {
+  const seen = new WeakSet();
+  return JSON.stringify(obj, (_key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return '[Circular]';
+      }
+      seen.add(value);
+    }
+    // Handle Error objects
+    if (value instanceof Error) {
+      return {
+        message: value.message,
+        name: value.name,
+        stack: value.stack?.split('\n').slice(0, 3).join('\n'),
+      };
+    }
+    return value;
+  });
+}
+
 // Custom format for console output
 const consoleFormat = winston.format.combine(
   winston.format.timestamp({ format: 'HH:mm:ss' }),
   winston.format.colorize(),
   winston.format.printf(({ timestamp, level, message, ...meta }) => {
-    const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
+    const metaStr = Object.keys(meta).length ? ` ${safeStringify(meta)}` : '';
     return `${timestamp} ${level}: ${message}${metaStr}`;
   })
 );
