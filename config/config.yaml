@@ -31,15 +31,65 @@ collectors:
     rapidApiKey: "${RAPIDAPI_KEY}"
     pollingIntervalMs: 120000  # 2 minutes
     priorityAccounts:
-      - "DefiLlama"
+      # Security Researchers & Auditors
       - "PeckShieldAlert"
       - "BlockSecTeam"
       - "certikiAlert"
       - "SlowMist_Team"
       - "samczsun"
-      - "eigenlayer"
+      - "zachxbt"
+      - "officer_cia"
+      - "hexagate_"
+
+      # DeFi Data & Analytics
+      - "DefiLlama"
+      - "DuneAnalytics"
+      - "TokenUnlocks"
+      - "naborso"
+
+      # DeFi Influencers & Alpha
+      - "DefiIgnas"
+      - "Defi_Made_Here"
+      - "Route2FI"
+      - "Pentosh1"
+      - "inversebrah"
+      - "0xMert_"
+      - "coaborbie"
+
+      # Major L2s & Chains
       - "arbitrum"
       - "Optimism"
+      - "BuildOnBase"
+      - "Scroll_ZKP"
+      - "LineaBuild"
+      - "Starknet"
+      - "zaborksync"
+
+      # Top DeFi Protocols
+      - "AaveAave"
+      - "MakerDAO"
+      - "CurveFinance"
+      - "Uniswap"
+      - "LidoFinance"
+      - "eigenlayer"
+      - "pendlefinance"
+      - "GMX_IO"
+      - "SynthetixIO"
+      - "RocketPool_Net"
+      - "fraborxfinance"
+
+      # Bridges & Infrastructure
+      - "LayerZero_Labs"
+      - "wormhole"
+      - "StargateFinance"
+      - "across_protocol"
+
+      # News & Research
+      - "TheBlock__"
+      - "MessariCrypto"
+      - "Blockworks_"
+      - "CoinDesk"
+      - "Cointelegraph"
 
   coingecko:
     enabled: true
@@ -47,11 +97,50 @@ collectors:
     apiKey: "${COINGECKO_API_KEY}"
     pollingIntervalMs: 120000  # 2 minutes
     watchlistIds:
+      # Major L1s
       - "ethereum"
       - "bitcoin"
+      - "solana"
+      - "avalanche-2"
+      - "matic-network"
+      - "binancecoin"
+
+      # L2 Tokens
       - "arbitrum"
       - "optimism"
-      - "solana"
+      - "starknet"
+
+      # DeFi Blue Chips
+      - "uniswap"
+      - "aave"
+      - "maker"
+      - "lido-dao"
+      - "curve-dao-token"
+      - "compound-governance-token"
+      - "synthetix-network-token"
+
+      # Liquid Staking
+      - "rocket-pool"
+      - "frax-ether"
+      - "coinbase-wrapped-staked-eth"
+
+      # Restaking & LRTs
+      - "eigenlayer"
+      - "ether-fi"
+      - "renzo"
+      - "puffer-finance"
+
+      # Perp DEXs
+      - "gmx"
+      - "dydx-chain"
+      - "hyperliquid"
+
+      # Stablecoins (for de-peg monitoring)
+      - "tether"
+      - "usd-coin"
+      - "dai"
+      - "frax"
+      - "ethena-usde"
 
 alerts:
   globalCooldownMs: 60000  # 1 minute between any alerts
