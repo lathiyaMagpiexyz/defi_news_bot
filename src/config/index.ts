@@ -56,6 +56,9 @@ function mergeConfigs(yamlConfig: Record<string, unknown>): Record<string, unkno
     app: {
       environment: process.env['NODE_ENV'] as 'development' | 'production' | undefined,
     },
+    storage: {
+      databasePath: process.env['DATABASE_PATH'],
+    },
   };
 
   // Deep merge, with env taking precedence

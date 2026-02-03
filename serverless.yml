@@ -1,0 +1,68 @@
+# Serverless Framework configuration for AWS Lambda deployment
+service: defi-news-bot
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'prod'}
+  timeout: 60  # 60 seconds (current execution ~33s)
+  memorySize: 512  # MB
+
+  # Environment variables
+  environment:
+    NODE_ENV: production
+    LOG_LEVEL: info
+    # Database path (Lambda /tmp is ephemeral - data won't persist between invocations)
+    DATABASE_PATH: /tmp/defi_bot.db
+    # Telegram config (use AWS Secrets Manager or SSM in production)
+    TELEGRAM_BOT_TOKEN: ${env:TELEGRAM_BOT_TOKEN}
+    TELEGRAM_CHAT_ID: ${env:TELEGRAM_CHAT_ID}
+    # API keys
+    RAPIDAPI_KEY: ${env:RAPIDAPI_KEY, ''}
+    COINGECKO_API_KEY: ${env:COINGECKO_API_KEY, ''}
+
+  # IAM permissions
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: '*'
+
+functions:
+  cronJob:
+    handler: dist/lambda.handler
+    description: DeFi News Bot - Collects signals and sends Telegram alerts
+    events:
+      # Run every 5 minutes
+      - schedule:
+          rate: rate(5 minutes)
+          enabled: true
+          description: 'Trigger DeFi News Bot every 5 minutes'
+
+# Package configuration
+package:
+  individually: true
+  patterns:
+    - '!**/*'
+    - 'dist/**'
+    - 'config/**'
+    - 'node_modules/**'
+    - '!node_modules/.cache/**'
+    - '!node_modules/typescript/**'
+    - '!node_modules/@types/**'
+    - '!**/*.ts'
+    - '!**/*.md'
+    - '!src/**'
+    - '!tests/**'
+
+plugins:
+  - serverless-offline  # For local testing (optional)
+
+custom:
+  serverless-offline:
+    httpPort: 3000

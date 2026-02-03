@@ -79,7 +79,7 @@ export abstract class BaseCollector {
     this.logger.info(`${this.name} collector stopped`);
   }
 
-  // Perform a single collection cycle
+  // Perform a single collection cycle (requires isRunning)
   async collect(): Promise<void> {
     if (!this.isRunning) {
       return;
@@ -99,6 +99,29 @@ export abstract class BaseCollector {
       eventBus.emit('collector:error', { name: this.name, error: err });
 
       this.logger.error(`${this.name} collection failed:`, error);
+    }
+  }
+
+  // Perform a single collection cycle (for cron job mode - no isRunning check)
+  async collectOnce(): Promise<void> {
+    this.logger.info(`Running one-time collection for ${this.name}`);
+
+    try {
+      await this.doCollect();
+      this.lastCollectionAt = new Date();
+      this.totalCollections++;
+      this.lastError = undefined;
+      this.logger.info(`${this.name} collection completed`);
+    } catch (error) {
+      this.totalErrors++;
+      this.lastErrorAt = new Date();
+      this.lastError = error instanceof Error ? error.message : String(error);
+
+      const err = error instanceof Error ? error : new Error(String(error));
+      eventBus.emit('collector:error', { name: this.name, error: err });
+
+      this.logger.error(`${this.name} collection failed:`, error);
+      throw error;
     }
   }
 

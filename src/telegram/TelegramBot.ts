@@ -209,7 +209,19 @@ export class TelegramBot {
     }
   }
 
-  // Start the bot
+  // Initialize bot without polling (for cron job mode)
+  // Event listeners are set up in constructor, this just marks bot as ready
+  initialize(): void {
+    if (this.isRunning) {
+      return;
+    }
+
+    logger.info('Initializing Telegram bot (cron mode - no polling)...');
+    this.isRunning = true;
+    logger.info('Telegram bot initialized (ready to send alerts)');
+  }
+
+  // Start the bot with polling (for long-running mode)
   async start(): Promise<void> {
     if (this.isRunning) {
       return;

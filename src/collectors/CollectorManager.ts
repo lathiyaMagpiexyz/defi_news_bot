@@ -71,6 +71,25 @@ export class CollectorManager {
     logger.info('All collectors stopped');
   }
 
+  // Run all collectors once (for cron job mode)
+  async runOnce(): Promise<void> {
+    logger.info(`Running ${this.collectors.size} collectors once (cron mode)...`);
+
+    const collectPromises = Array.from(this.collectors.entries()).map(
+      async ([name, collector]) => {
+        try {
+          await collector.collectOnce();
+          logger.info(`${name} collector completed`);
+        } catch (error) {
+          logger.error(`${name} collector failed:`, error);
+        }
+      }
+    );
+
+    await Promise.all(collectPromises);
+    logger.info('All collectors completed');
+  }
+
   // Get collector by name
   getCollector(name: string): BaseCollector | undefined {
     return this.collectors.get(name);
