@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeFi News Bot - Architecture Documentation</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #f1f5f9;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #7c3aed, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            color: #f1f5f9;
+            margin: 40px 0 20px;
+            padding-left: 16px;
+            border-left: 3px solid #7c3aed;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: #7c3aed;
+            box-shadow: 0 20px 40px rgba(124, 58, 237, 0.2);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+        }
+
+        .card-description {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-sequence { background: rgba(124, 58, 237, 0.2); color: #a78bfa; }
+        .badge-flowchart { background: rgba(6, 182, 212, 0.2); color: #22d3d6; }
+        .badge-architecture { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .badge-data { background: rgba(251, 146, 60, 0.2); color: #fb923c; }
+
+        .diagram-section {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 40px;
+            display: none;
+        }
+
+        .diagram-section.active {
+            display: block;
+        }
+
+        .diagram-section h2 {
+            color: #f1f5f9;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .diagram-section h3 {
+            color: #cbd5e1;
+            margin: 24px 0 12px;
+            font-size: 1.1rem;
+        }
+
+        .diagram-section p, .diagram-section li {
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .diagram-section ul {
+            padding-left: 24px;
+            margin-bottom: 16px;
+        }
+
+        .mermaid {
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .back-btn {
+            background: rgba(124, 58, 237, 0.2);
+            border: 1px solid #7c3aed;
+            color: #a78bfa;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            margin-bottom: 24px;
+        }
+
+        .back-btn:hover {
+            background: rgba(124, 58, 237, 0.4);
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .tech-tag {
+            background: rgba(51, 65, 85, 0.8);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            color: #7c3aed;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+
+        th {
+            color: #f1f5f9;
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        td {
+            color: #94a3b8;
+        }
+
+        code {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #22d3d6;
+        }
+
+        .code-block {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        .code-block code {
+            background: none;
+            padding: 0;
+            display: block;
+            white-space: pre;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .container { padding: 20px 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DeFi News Bot</h1>
+            <p class="subtitle">Real-time DeFi alert aggregation system architecture</p>
+        </header>
+
+        <!-- Main Navigation -->
+        <div id="main-nav">
+            <h2 class="section-title">System Overview</h2>
+            <div class="cards-grid">
+                <div class="card" onclick="showDiagram('architecture')">
+                    <div class="card-icon">🏗️</div>
+                    <div class="card-title">System Architecture</div>
+                    <div class="card-description">High-level overview of all components and how they connect</div>
+                    <span class="badge badge-architecture">architecture</span>
+                </div>
+                <div class="card" onclick="showDiagram('startup')">
+                    <div class="card-icon">🚀</div>
+                    <div class="card-title">Startup Sequence</div>
+                    <div class="card-description">Initialization flow from boot to running state</div>
+                    <span class="badge badge-sequence">sequence</span>
+                </div>
+            </div>
+
+            <h2 class="section-title">Data Collection</h2>
+            <div class="cards-grid">
+                <div class="card" onclick="showDiagram('collection')">
+                    <div class="card-icon">📡</div>
+                    <div class="card-title">Collection Flow</div>
+                    <div class="card-description">How data is fetched from DeFiLlama, Twitter, and CoinGecko</div>
+                    <span class="badge badge-flowchart">flowchart</span>
+                </div>
+                <div class="card" onclick="showDiagram('twitter')">
+                    <div class="card-icon">🐦</div>
+                    <div class="card-title">Twitter Pipeline</div>
+                    <div class="card-description">Tweet collection, filtering, and keyword matching</div>
+                    <span class="badge badge-sequence">sequence</span>
+                </div>
+                <div class="card" onclick="showDiagram('tvl')">
+                    <div class="card-icon">📊</div>
+                    <div class="card-title">TVL Tracking</div>
+                    <div class="card-description">Protocol TVL monitoring and change detection</div>
+                    <span class="badge badge-flowchart">flowchart</span>
+                </div>
+            </div>
+
+            <h2 class="section-title">Signal Processing</h2>
+            <div class="cards-grid">
+                <div class="card" onclick="showDiagram('signal')">
+                    <div class="card-icon">⚡</div>
+                    <div class="card-title">Signal Processing</div>
+                    <div class="card-description">Raw data analysis, scoring, and alert generation</div>
+                    <span class="badge badge-flowchart">flowchart</span>
+                </div>
+                <div class="card" onclick="showDiagram('keyword')">
+                    <div class="card-icon">🔍</div>
+                    <div class="card-title">Keyword Matching</div>
+                    <div class="card-description">Category detection and scoring algorithm</div>
+                    <span class="badge badge-data">data flow</span>
+                </div>
+            </div>
+
+            <h2 class="section-title">Alerting & Notification</h2>
+            <div class="cards-grid">
+                <div class="card" onclick="showDiagram('alert')">
+                    <div class="card-icon">🔔</div>
+                    <div class="card-title">Alert Pipeline</div>
+                    <div class="card-description">From signal to Telegram notification</div>
+                    <span class="badge badge-sequence">sequence</span>
+                </div>
+                <div class="card" onclick="showDiagram('telegram')">
+                    <div class="card-icon">💬</div>
+                    <div class="card-title">Telegram Bot</div>
+                    <div class="card-description">User commands, subscriptions, and message formatting</div>
+                    <span class="badge badge-flowchart">flowchart</span>
+                </div>
+            </div>
+
+            <h2 class="section-title">Data & Storage</h2>
+            <div class="cards-grid">
+                <div class="card" onclick="showDiagram('database')">
+                    <div class="card-icon">🗄️</div>
+                    <div class="card-title">Database Schema</div>
+                    <div class="card-description">SQLite tables, relationships, and indices</div>
+                    <span class="badge badge-data">data flow</span>
+                </div>
+                <div class="card" onclick="showDiagram('eventbus')">
+                    <div class="card-icon">🔀</div>
+                    <div class="card-title">Event Bus</div>
+                    <div class="card-description">Event types and component communication</div>
+                    <span class="badge badge-architecture">architecture</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diagram Sections -->
+
+        <!-- System Architecture -->
+        <div id="architecture" class="diagram-section">
+            <button class="back-btn" onclick="showMain()">← Back to Overview</button>
+            <h2>🏗️ System Architecture</h2>
+
+            <p>The DeFi News Bot is an event-driven, real-time alert aggregation system that monitors DeFi protocols and delivers notifications via Telegram.</p>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Data Collectors</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">7</div>
+                    <div class="stat-label">Alert Categories</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">3-5</div>
+                    <div class="stat-label">Min Poll Interval</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">SQLite</div>
+                    <div class="stat-label">Database</div>
+                </div>
+            </div>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph External["External APIs"]
+        DL[("DeFiLlama API")]
+        TW[("Twitter/RapidAPI")]
+        CG[("CoinGecko API")]
+        TG[("Telegram API")]
+    end
+
+    subgraph Collection["Collection Layer"]
+        DLC[DeFiLlamaCollector<br/>5 min interval]
+        TWC[TwitterCollector<br/>3 min interval]
+        CGC[CoinGeckoCollector<br/>3 min interval]
+    end
+
+    subgraph Core["Core Layer"]
+        EB((EventBus))
+        CM[CollectorManager]
+    end
+
+    subgraph Processing["Processing Layer"]
+        SP[SignalProcessor]
+        TVL[TVLAnalyzer]
+        KF[KeywordFilter]
+        PA[PriceAnalyzer]
+    end
+
+    subgraph Alerting["Alerting Layer"]
+        AM[AlertManager]
+        TB[TelegramBot]
+    end
+
+    subgraph Storage["Storage Layer"]
+        DB[(SQLite DB)]
+        AR[AlertRepository]
+        PR[ProtocolRepository]
+        SR[SettingsRepository]
+    end
+
+    DL --> DLC
+    TW --> TWC
+    CG --> CGC
+
+    DLC --> EB
+    TWC --> EB
+    CGC --> EB
+
+    CM --> DLC
+    CM --> TWC
+    CM --> CGC
+
+    EB --> SP
+    SP --> TVL
+    SP --> KF
+    SP --> PA
+
+    SP --> EB
+    EB --> AM
+    EB --> TB
+
+    TB --> TG
+
+    AM --> AR
+    TVL --> PR
+    TB --> SR
+
+    AR --> DB
+    PR --> DB
+    SR --> DB
+
+    style EB fill:#7c3aed,color:#fff
+    style DB fill:#06b6d4,color:#fff
+            </div>
+
+            <h3>Key Design Patterns</h3>
+            <ul>
+                <li><strong>Event-Bus Pattern:</strong> Central EventBus (TypedEventEmitter) connects all components</li>
+                <li><strong>Singleton Pattern:</strong> Config, Database, CollectorManager are singletons</li>
+                <li><strong>Polling-Based Collection:</strong> Fixed interval data collection using setInterval()</li>
+                <li><strong>Pipeline Architecture:</strong> Raw Data → Processing → Filtering → Alerting</li>
+            </ul>
+
+            <h3>Tech Stack</h3>
+            <div class="tech-stack">
+                <span class="tech-tag">TypeScript</span>
+                <span class="tech-tag">Node.js</span>
+                <span class="tech-tag">SQLite (better-sqlite3)</span>
+                <span class="tech-tag">Telegraf</span>
+                <span class="tech-tag">Axios</span>
+                <span class="tech-tag">Zod</span>
+                <span class="tech-tag">p-queue</span>
+            </div>
+        </div>
+
+        <!-- Startup Sequence -->
+        <div id="startup" class="diagram-section">
+            <button class="back-btn" onclick="showMain()">← Back to Overview</button>
+            <h2>🚀 Startup Sequence</h2>
+
+            <p>The application initializes components in a specific order to ensure dependencies are ready before dependent services start.</p>
+
+            <div class="mermaid">
+sequenceDiagram
+    participant Main as index.ts
+    participant Config as ConfigLoader
+    participant DB as Database
+    participant SP as SignalProcessor
+    participant AM as AlertManager
+    participant TB as TelegramBot
+    participant CM as CollectorManager
+    participant EB as EventBus
+
+    Main->>Config: loadConfig()
+    Config-->>Main: config object
+
+    Main->>DB: initialize()
+    DB->>DB: Run migrations
+    DB->>DB: Enable WAL mode
+    DB-->>Main: ready
+
+    Main->>SP: initialize()
+    SP->>EB: subscribe(collector:*)
+    SP-->>Main: ready
+
+    Main->>AM: initialize()
+    AM->>EB: subscribe(signal:alert)
+    AM-->>Main: ready
+
+    Main->>TB: start()
+    TB->>TB: Setup commands
+    TB->>EB: subscribe(signal:alert)
+    TB-->>Main: polling started
+
+    Main->>CM: startAll()
+    CM->>CM: Initialize collectors
+
+    par Parallel Start
+        CM->>CM: DeFiLlamaCollector.start()
+        CM->>CM: TwitterCollector.start()
+        CM->>CM: CoinGeckoCollector.start()
+    end
+
+    CM-->>Main: all collectors running
+
+    Main->>EB: emit(system:ready)
+
+    Note over Main,EB: System now operational
+            </div>
+
+            <h3>Initialization Order</h3>
+            <ol>
+                <li><strong>Configuration</strong> - Load YAML + environment variables</li>
+                <li><strong>Database</strong> - Run migrations, enable WAL mode</li>
+                <li><strong>SignalProcessor</strong> - Subscribe to collector events</li>
+                <li><strong>AlertManager</strong> - Subscribe to alert events</li>
+                <li><strong>TelegramBot</strong> - Start polling, setup commands</li>
+                <li><strong>Collectors</strong> - Start all in parallel</li>
+            </ol>
+        </div>
+
+        <!-- Collection Flow -->
+        <div id="collection" class="diagram-section">
+            <button class="back-btn" onclick="showMain()">← Back to Overview</button>
+            <h2>📡 Collection Flow</h2>
+
+            <p>Each collector follows the same base pattern but fetches different data types at different intervals.</p>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph Scheduling["Scheduling (setInterval)"]
+        T1[("Every 5 min")]
+        T2[("Every 3 min")]
+        T3[("Every 3 min")]
+    end
+
+    subgraph Collectors["Collectors"]
+        DLC[DeFiLlamaCollector]
+        TWC[TwitterCollector]
+        CGC[CoinGeckoCollector]
+    end
+
+    subgraph RateLimiting["Rate Limiting (p-queue)"]
+        RL1[20 req/min]
+        RL2[15 req/min]
+        RL3[10 req/min]
+    end
+
+    subgraph APIs["External APIs"]
+        API1["/protocols<br/>/v2/chains"]
+        API2["Timeline API<br/>Search API"]
+        API3["/coins/markets"]
+    end
+
+    subgraph Events["Event Emission"]
+        E1[collector:tvl]
+        E2[collector:tweet]
+        E3[collector:price]
+    end
+
+    T1 --> DLC
+    T2 --> TWC
+    T3 --> CGC
+
+    DLC --> RL1 --> API1
+    TWC --> RL2 --> API2
+    CGC --> RL3 --> API3
+
+    API1 --> E1
+    API2 --> E2
+    API3 --> E3
+
+    E1 --> EB((EventBus))
+    E2 --> EB
+    E3 --> EB
+
+    style EB fill:#7c3aed,color:#fff
+            </div>
+
+            <h3>Collector Configuration</h3>
+            <table>
+                <tr>
+                    <th>Collector</th>
+                    <th>Interval</th>
+                    <th>Rate Limit</th>
+                    <th>Data Type</th>
+                </tr>
+                <tr>
+                    <td>DeFiLlama</td>
+                    <td>300,000ms (5 min)</td>
+                    <td>20 req/min</td>
+                    <td>Protocol TVL, Chain TVL</td>
+                </tr>
+                <tr>
+                    <td>Twitter</td>
+                    <td>180,000ms (3 min)</td>
+                    <td>15 req/min</td>
+                    <td>Tweets from priority accounts</td>
+                </tr>
+                <tr>
+                    <td>CoinGecko</td>
+                    <td>180,000ms (3 min)</td>
+                    <td>10 req/min</td>
+                    <td>Token prices (ETH, BTC, stables)</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Twitter Pipeline -->
+        <div id="twitter" class="diagram-section">
+            <button class="back-btn" onclick="showMain()">← Back to Overview</button>
+            <h2>🐦 Twitter Pipeline</h2>
+
+            <p>The Twitter collector fetches tweets from priority accounts and keyword searches, then filters and deduplicates them.</p>
+
+            <div class="mermaid">
+sequenceDiagram
+    participant TC as TwitterCollector
+    participant RL as RateLimiter
+    participant API as RapidAPI
+    participant DD as Deduplicator
+    participant EB as EventBus
+
+    loop Every 3 minutes
+        TC->>TC: Get priority accounts list
+
+        loop For each account
+            TC->>RL: Queue request
+            RL->>API: GET /timeline (10 tweets)
+            API-->>TC: Tweet data
+        end
+
+        TC->>TC: Get security keywords
+
+        loop 3 keyword searches
+            TC->>RL: Queue request
+            RL->>API: GET /search
+            API-->>TC: Search results
+        end
+
+        TC->>DD: Check processed IDs
+        DD-->>TC: New tweets only
+
+        loop For each new tweet
+            TC->>TC: Skip retweets
+            TC->>TC: Validate source
+            TC->>EB: emit(collector:tweet)
+        end
+
+        TC->>DD: Add to processed set
+        Note over DD: Maintains last 1000 IDs
+    end
+            </div>
+
+            <h3>Priority Accounts</h3>
+            <p>Security researchers and official protocol accounts get higher scoring:</p>
+            <div class="tech-stack">
+                <span class="tech-tag">@PeckShieldAlert</span>
+                <span class="tech-tag">@BlockSecTeam</span>
+                <span class="tech-tag">@eigenlayer</span>
+                <span class="tech-tag">@CertiKAlert</span>
+                <span class="tech-tag">@SlowMist_Team</span>
+            </div>
+        </div>
+
+        <!-- TVL Tracking -->
+        <div id="tvl" class="diagram-section">
+            <button class="back-btn" onclick="showMain()">← Back to Overview</button>
+            <h2>📊 TVL Tracking</h2>
+
+            <p>Protocol TVL is tracked over time to detect significant changes that warrant alerts.</p>
+
+            <div class="mermaid">
+flowchart TB
+    A[DeFiLlama API Response] --> B{Protocol in watchlist?}
+    B -->|No| C[Skip]
+    B -->|Yes| D[Get stored state]
+
+    D --> E{Previous TVL exists?}
+    E -->|No| F[Store initial state]
+    E -->|Yes| G[Calculate % change]
+
+    G --> H{Change >= 20%?}
+    H -->|No| I[Update timestamp]
+    H -->|Yes| J{TVL > $10M?}
+
+    J -->|No| I
+    J -->|Yes| K[Determine priority]
+
+    K --> L{Change magnitude}
+    L -->|20-50%| M[Priority: MEDIUM]
+    L -->|50-100%| N[Priority: HIGH]
+    L -->|>100%| O[Priority: CRITICAL]
+
+    M --> P[Generate TVL_CHANGE alert]
+    N --> P
+    O --> P
+
+    P --> Q[Update stored state]
+    Q --> R[Emit signal:alert]
+
+    style R fill:#7c3aed,color:#fff
+            </div>
+
+            <h3>TVL Alert Thresholds</h3>
+            <table>
+                <tr>
+                    <th>Change %</th>
+                    <th>Min TVL</th>
+                    <th>Priority</th>
+                </tr>
+                <tr>
+                    <td>20% - 50%</td>
+                    <td>$10,000,000</td>
+                    <td>MEDIUM</td>
+                </tr>
+                <tr>
+                    <td>50% - 100%</td>
+                    <td>$10,000,000</td>
+                    <td>HIGH</td>
+                </tr>
+                <tr>
+                    <td>> 100%</td>
+                    <td>$10,000,000</td>
+                    <td>CRITICAL</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Signal Processing -->
+        <div id="signal" class="diagram-section">
+            <button class="back-btn" onclick="showMain()">← Back to Overview</button>
+            <h2>⚡ Signal Processing</h2>
+
+            <p>The SignalProcessor receives raw data events and transforms them into actionable alerts.</p>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph Input["Raw Events"]
+        E1[collector:tvl]
+        E2[collector:tweet]
+        E3[collector:price]
+    end
+
+    subgraph SignalProcessor["SignalProcessor"]
+        SP[Event Handler]
+
+        subgraph Analyzers["Analyzers"]
+            TVL[TVLAnalyzer]
+            KF[KeywordFilter]
+            PA[PriceAnalyzer]
+        end
+    end
+
+    subgraph Filtering["Filtering Layer"]
+        CD[Cooldown Check]
+        DD[Dedup Check]
+    end
+
+    subgraph Output["Output"]
+        AL[signal:alert]
+    end
+
+    E1 --> SP
+    E2 --> SP
+    E3 --> SP
+
+    SP --> TVL
+    SP --> KF
+    SP --> PA
+
+    TVL --> CD
+    KF --> CD
+    PA --> CD
+
+    CD --> DD
+    DD --> AL
+
+    style AL fill:#7c3aed,color:#fff
+            </div>
+
+            <h3>Cooldown System</h3>
+            <table>
+                <tr>
+                    <th>Type</th>
+                    <th>Duration</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>Global Cooldown</td>
+                    <td>300,000ms (5 min)</td>
+                    <td>Minimum time between ANY alerts</td>
+                </tr>
+                <tr>
+                    <td>Category Cooldown</td>
+                    <td>Varies by category</td>
+                    <td>Per-category rate limiting</td>
+                </tr>
+                <tr>
+                    <td>Deduplication Window</td>
+                    <td>86,400,000ms (24 hr)</td>
+                    <td>Prevent duplicate alerts</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Keyword Matching -->
+        <div id="keyword" class="diagram-section">
+            <button class="back-btn" onclick="showMain()">← Back to Overview</button>
+            <h2>🔍 Keyword Matching</h2>
+
+            <p>Tweets are scored against category-specific keyword lists to determine alert type and priority.</p>
+
+            <div class="mermaid">
+flowchart LR
+    subgraph Input["Tweet Input"]
+        T[Tweet Text + Metadata]
+    end
+
+    subgraph Scoring["Score Calculation"]
+        P["+10 Primary keywords"]
+        S["+5 Secondary keywords"]
+        H["+3 Hashtag matches"]
+        A["+20 Priority account"]
+        E["+5 High engagement"]
+        N["-50 Negative keywords"]
+    end
+
+    subgraph Categories["Category Matching"]
+        C1[SECURITY]
+        C2[INCENTIVE]
+        C3[TOKEN_EVENT]
+        C4[GOVERNANCE]
+        C5[NARRATIVE]
+    end
+
+    subgraph Output["Best Match"]
+        B[Highest scoring category]
+    end
+
+    T --> P
+    T --> S
+    T --> H
+    T --> A
+    T --> E
+    T --> N
+
+    P --> C1
+    S --> C1
+    H --> C1
+    A --> C1
+    E --> C1
+    N --> C1
+
+    P --> C2
+    S --> C2
+    H --> C2
+
+    C1 --> B
+    C2 --> B
+    C3 --> B
+    C4 --> B
+    C5 --> B
+
+    style B fill:#7c3aed,color:#fff
+            </div>
+
+            <h3>Scoring Weights</h3>
+            <div class="code-block">
+<code>Score =
+  (primaryMatches × 10) +
+  (secondaryMatches × 5) +
+  (hashtagMatches × 3) +
+  (isPriorityAccount ? 20 : 0) +
+  (retweets > 100 ? 5 : 0) +
+  (likes > 500 ? 5 : 0) -
+  (negativeMatches × 50)</code>
+            </div>
+
+            <h3>Example Keywords by Category</h3>
+            <table>
+                <tr>
+                    <th>Category</th>
+                    <th>Primary Keywords</th>
+                </tr>
+                <tr>
+                    <td>SECURITY</td>
+                    <td><code>exploit</code>, <code>hack</code>, <code>vulnerability</code>, <code>drained</code></td>
+                </tr>
+                <tr>
+                    <td>INCENTIVE</td>
+                    <td><code>airdrop</code>, <code>snapshot</code>, <code>points</code>, <code>rewards</code></td>
+                </tr>
+                <tr>
+                    <td>TOKEN_EVENT</td>
+                    <td><code>unlock</code>, <code>vesting</code>, <code>emission</code>, <code>burn</code></td>
+                </tr>
+                <tr>
+                    <td>GOVERNANCE</td>
+                    <td><code>proposal</code>, <code>vote</code>, <code>quorum</code>, <code>governance</code></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Alert Pipeline -->
+        <div id="alert" class="diagram-section">
+            <button class="back-btn" onclick="showMain()">← Back to Overview</button>
+            <h2>🔔 Alert Pipeline</h2>
+
+            <p>The complete flow from signal generation to user notification.</p>
+
+            <div class="mermaid">
+sequenceDiagram
+    participant SP as SignalProcessor
+    participant EB as EventBus
+    participant AM as AlertManager
+    participant AR as AlertRepository
+    participant TB as TelegramBot
+    participant SR as SettingsRepository
+    participant TG as Telegram API
+
+    SP->>EB: emit(signal:alert, alertData)
+
+    par Parallel Handlers
+        EB->>AM: onAlert(alertData)
+        EB->>TB: onAlert(alertData)
+    end
+
+    AM->>AR: checkDuplicate(dedupKey)
+    AR-->>AM: isNew: true
+    AM->>AR: saveAlert(alertData)
+    AM->>EB: emit(alert:saved)
+
+    TB->>SR: getUserSettings(chatId)
+    SR-->>TB: settings
+
+    TB->>TB: Check pause state
+    TB->>TB: Check subscriptions
+    TB->>TB: Format message
+
+    TB->>TG: sendMessage(chatId, formatted)
+    TG-->>TB: success
+
+    TB->>EB: emit(alert:sent)
+            </div>
+
+            <h3>Alert Categories & Priorities</h3>
+            <table>
+                <tr>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Cooldown</th>
+                    <th>Default</th>
+                </tr>
+                <tr>
+                    <td>🔴 SECURITY</td>
+                    <td>CRITICAL (4)</td>
+                    <td>0ms</td>
+                    <td>Enabled</td>
+                </tr>
+                <tr>
+                    <td>🔴 STABLECOIN_DEPEG</td>
+                    <td>CRITICAL (4)</td>
+                    <td>0ms</td>
+                    <td>Enabled</td>
+                </tr>
+                <tr>
+                    <td>🟠 TVL_CHANGE</td>
+                    <td>HIGH (3)</td>
+                    <td>30 min</td>
+                    <td>Enabled</td>
+                </tr>
+                <tr>
+                    <td>🟠 INCENTIVE</td>
+                    <td>HIGH (3)</td>
+                    <td>10 min</td>
+                    <td>Enabled</td>
+                </tr>
+                <tr>
+                    <td>🟡 TOKEN_EVENT</td>
+                    <td>MEDIUM (2)</td>
+                    <td>1 hour</td>
+                    <td>Enabled</td>
+                </tr>
+                <tr>
+                    <td>⚪ GOVERNANCE</td>
+                    <td>LOW (1)</td>
+                    <td>1 hour</td>
+                    <td>Disabled</td>
+                </tr>
+                <tr>
+                    <td>⚪ NARRATIVE</td>
+                    <td>LOW (1)</td>
+                    <td>1 hour</td>
+                    <td>Disabled</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Telegram Bot -->
+        <div id="telegram" class="diagram-section">
+            <button class="back-btn" onclick="showMain()">← Back to Overview</button>
+            <h2>💬 Telegram Bot</h2>
+
+            <p>The Telegram bot handles user commands and delivers formatted alerts.</p>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph Commands["User Commands"]
+        C1["/start"]
+        C2["/help"]
+        C3["/status"]
+        C4["/subscribe"]
+        C5["/unsubscribe"]
+        C6["/subscriptions"]
+        C7["/pause"]
+        C8["/resume"]
+        C9["/recent"]
+    end
+
+    subgraph Bot["TelegramBot"]
+        H[Command Handler]
+        F[Message Formatter]
+        S[Subscription Manager]
+    end
+
+    subgraph Storage["Settings Storage"]
+        SR[(SettingsRepository)]
+    end
+
+    subgraph Alerts["Alert Delivery"]
+        AL[Alert Listener]
+        FM[Format Message]
+        SN[Send to Chat]
+    end
+
+    C1 --> H
+    C2 --> H
+    C3 --> H
+    C4 --> H --> S --> SR
+    C5 --> H --> S
+    C6 --> H --> S
+    C7 --> H --> S
+    C8 --> H --> S
+    C9 --> H
+
+    AL --> FM --> SN
+
+    style SR fill:#06b6d4,color:#fff
+            </div>
+
+            <h3>Message Format Example</h3>
+            <div class="code-block">
+<code>🔴 SECURITY ALERT
+
+⚠️ Exploit detected on Curve Finance
+
+Details: $47M drained from multiple pools
+Protocol: Curve Finance
+Source: @PeckShieldAlert
+
+🔗 https://twitter.com/PeckShieldAlert/status/...</code>
+            </div>
+
+            <h3>Available Commands</h3>
+            <table>
+                <tr>
+                    <th>Command</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>/start</code></td>
+                    <td>Welcome message and setup</td>
+                </tr>
+                <tr>
+                    <td><code>/help</code></td>
+                    <td>List available commands</td>
+                </tr>
+                <tr>
+                    <td><code>/status</code></td>
+                    <td>Bot uptime and memory usage</td>
+                </tr>
+                <tr>
+                    <td><code>/subscribe &lt;category&gt;</code></td>
+                    <td>Enable alerts for category</td>
+                </tr>
+                <tr>
+                    <td><code>/unsubscribe &lt;category&gt;</code></td>
+                    <td>Disable alerts for category</td>
+                </tr>
+                <tr>
+                    <td><code>/subscriptions</code></td>
+                    <td>View current subscriptions</td>
+                </tr>
+                <tr>
+                    <td><code>/pause</code></td>
+                    <td>Temporarily stop all alerts</td>
+                </tr>
+                <tr>
+                    <td><code>/resume</code></td>
+                    <td>Resume receiving alerts</td>
+                </tr>
+                <tr>
+                    <td><code>/recent [n]</code></td>
+                    <td>Show last N alerts (default 5)</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Database Schema -->
+        <div id="database" class="diagram-section">
+            <button class="back-btn" onclick="showMain()">← Back to Overview</button>
+            <h2>🗄️ Database Schema</h2>
+
+            <p>SQLite database with WAL mode for concurrent reads. All data is persisted for history and deduplication.</p>
+
+            <div class="mermaid">
+erDiagram
+    alerts {
+        integer id PK
+        text category
+        integer priority
+        text title
+        text content
+        text source_url
+        text deduplication_key UK
+        text metadata_json
+        datetime sent_at
+        datetime created_at
+    }
+
+    protocol_state {
+        integer id PK
+        text protocol_id UK
+        text name
+        real tvl_usd
+        real previous_tvl_usd
+        text chain
+        datetime last_checked_at
+        datetime created_at
+    }
+
+    user_settings {
+        integer id PK
+        text chat_id UK
+        text subscriptions_json
+        boolean paused
+        datetime created_at
+        datetime updated_at
+    }
+
+    token_prices {
+        integer id PK
+        text token_id UK
+        text symbol
+        real price_usd
+        real price_change_24h
+        datetime updated_at
+    }
+
+    rate_limit_state {
+        integer id PK
+        text service UK
+        integer requests_count
+        datetime window_start
+    }
+
+    system_state {
+        text key PK
+        text value
+        datetime updated_at
+    }
+
+    migrations {
+        integer id PK
+        text name UK
+        datetime applied_at
+    }
+            </div>
+
+            <h3>Key Indices</h3>
+            <ul>
+                <li><code>idx_alerts_dedup</code> on <code>alerts.deduplication_key</code> - Fast duplicate checking</li>
+                <li><code>idx_alerts_sent_at</code> on <code>alerts.sent_at</code> - Recent alerts query</li>
+                <li><code>idx_alerts_category</code> on <code>alerts.category</code> - Category filtering</li>
+                <li><code>idx_protocol_state_checked</code> on <code>protocol_state.last_checked_at</code> - Stale detection</li>
+            </ul>
+        </div>
+
+        <!-- Event Bus -->
+        <div id="eventbus" class="diagram-section">
+            <button class="back-btn" onclick="showMain()">← Back to Overview</button>
+            <h2>🔀 Event Bus</h2>
+
+            <p>The EventBus is a typed event emitter that connects all components in a decoupled manner.</p>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph Emitters["Event Emitters"]
+        DLC[DeFiLlamaCollector]
+        TWC[TwitterCollector]
+        CGC[CoinGeckoCollector]
+        SP[SignalProcessor]
+        AM[AlertManager]
+        TB[TelegramBot]
+        SYS[System]
+    end
+
+    EB((EventBus))
+
+    subgraph Listeners["Event Listeners"]
+        SP2[SignalProcessor]
+        AM2[AlertManager]
+        TB2[TelegramBot]
+        LOG[Logger]
+    end
+
+    DLC -->|"collector:tvl"| EB
+    TWC -->|"collector:tweet"| EB
+    CGC -->|"collector:price"| EB
+    SP -->|"signal:alert"| EB
+    AM -->|"alert:saved"| EB
+    TB -->|"alert:sent"| EB
+    SYS -->|"system:ready"| EB
+
+    EB -->|"collector:*"| SP2
+    EB -->|"signal:alert"| AM2
+    EB -->|"signal:alert"| TB2
+    EB -->|"*"| LOG
+
+    style EB fill:#7c3aed,color:#fff
+            </div>
+
+            <h3>Event Types</h3>
+            <table>
+                <tr>
+                    <th>Event</th>
+                    <th>Payload</th>
+                    <th>Emitter</th>
+                    <th>Listeners</th>
+                </tr>
+                <tr>
+                    <td><code>collector:tvl</code></td>
+                    <td>RawTVLData</td>
+                    <td>DeFiLlamaCollector</td>
+                    <td>SignalProcessor</td>
+                </tr>
+                <tr>
+                    <td><code>collector:tweet</code></td>
+                    <td>RawTweet</td>
+                    <td>TwitterCollector</td>
+                    <td>SignalProcessor</td>
+                </tr>
+                <tr>
+                    <td><code>collector:price</code></td>
+                    <td>RawPriceData</td>
+                    <td>CoinGeckoCollector</td>
+                    <td>SignalProcessor</td>
+                </tr>
+                <tr>
+                    <td><code>signal:alert</code></td>
+                    <td>Alert</td>
+                    <td>SignalProcessor</td>
+                    <td>AlertManager, TelegramBot</td>
+                </tr>
+                <tr>
+                    <td><code>alert:sent</code></td>
+                    <td>AlertResult</td>
+                    <td>TelegramBot</td>
+                    <td>Logger</td>
+                </tr>
+                <tr>
+                    <td><code>system:ready</code></td>
+                    <td>void</td>
+                    <td>Main</td>
+                    <td>All</td>
+                </tr>
+                <tr>
+                    <td><code>system:shutdown</code></td>
+                    <td>void</td>
+                    <td>Main</td>
+                    <td>All</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        // Initialize Mermaid with dark theme
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#7c3aed',
+                primaryTextColor: '#f1f5f9',
+                primaryBorderColor: '#334155',
+                lineColor: '#64748b',
+                secondaryColor: '#1e1b4b',
+                tertiaryColor: '#0f172a',
+                background: '#0f172a',
+                mainBkg: '#1e293b',
+                nodeBorder: '#334155',
+                clusterBkg: 'rgba(30, 41, 59, 0.5)',
+                clusterBorder: '#334155',
+                titleColor: '#f1f5f9',
+                edgeLabelBackground: '#1e293b'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true,
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65
+            },
+            er: {
+                useMaxWidth: true
+            }
+        });
+
+        function showDiagram(id) {
+            // Hide main nav
+            document.getElementById('main-nav').style.display = 'none';
+
+            // Hide all diagrams
+            document.querySelectorAll('.diagram-section').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Show selected diagram
+            const section = document.getElementById(id);
+            section.classList.add('active');
+
+            // Render mermaid diagrams in this section
+            const mermaidDivs = section.querySelectorAll('.mermaid');
+            mermaidDivs.forEach((div, index) => {
+                if (!div.getAttribute('data-processed')) {
+                    const graphDefinition = div.textContent;
+                    const uniqueId = `mermaid-${id}-${index}`;
+                    mermaid.render(uniqueId, graphDefinition).then(({svg}) => {
+                        div.innerHTML = svg;
+                        div.setAttribute('data-processed', 'true');
+                    });
+                }
+            });
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        function showMain() {
+            // Hide all diagrams
+            document.querySelectorAll('.diagram-section').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Show main nav
+            document.getElementById('main-nav').style.display = 'block';
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>
