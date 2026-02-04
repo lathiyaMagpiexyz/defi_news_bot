@@ -57,6 +57,11 @@ package:
     - '!node_modules/.cache/**'
     - '!node_modules/typescript/**'
     - '!node_modules/@types/**'
+    # Exclude better-sqlite3 (native module, not used in Lambda)
+    - '!node_modules/better-sqlite3/**'
+    - '!node_modules/bindings/**'
+    - '!node_modules/file-uri-to-path/**'
+    - '!node_modules/prebuild-install/**'
     - '!**/*.ts'
     - '!**/*.md'
     - '!src/**'
