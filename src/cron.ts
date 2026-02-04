@@ -1,7 +1,7 @@
 import { createLogger } from './utils/logger.js';
 import { getConfig } from './config/index.js';
 import { database } from './storage/Database.js';
-import { getTelegramBot } from './telegram/TelegramBot.js';
+import { getTelegramSender } from './telegram/TelegramSender.js';
 import { getCollectorManager } from './collectors/CollectorManager.js';
 import { getSignalProcessor } from './processors/SignalProcessor.js';
 import { getAlertManager } from './alerting/AlertManager.js';
@@ -30,10 +30,9 @@ async function runCronJob(): Promise<void> {
     logger.info('Initializing alert manager...');
     getAlertManager();
 
-    // Initialize Telegram bot (without polling - just ready to send alerts)
-    logger.info('Initializing Telegram bot...');
-    const telegramBot = getTelegramBot();
-    telegramBot.initialize();
+    // Initialize Telegram sender (broadcast-only mode)
+    logger.info('Initializing Telegram sender...');
+    getTelegramSender();
 
     // Run collectors ONCE
     logger.info('Running collectors...');

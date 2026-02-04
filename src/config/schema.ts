@@ -19,9 +19,10 @@ export const configSchema = z.object({
 
   telegram: z.object({
     botToken: z.string().min(1, 'Telegram bot token is required'),
-    allowedChatIds: z.array(z.string()).default([]),
+    allowedChatIds: z.array(z.string()).min(1, 'At least one chat ID is required'),
     adminChatIds: z.array(z.string()).default([]),
     pollingMode: z.boolean().default(true),
+    messageThreadId: z.number({ required_error: 'Message thread ID is required for topic-based groups' }),
   }),
 
   collectors: z.object({

@@ -18,6 +18,7 @@ provider:
     # Telegram config (use AWS Secrets Manager or SSM in production)
     TELEGRAM_BOT_TOKEN: ${env:TELEGRAM_BOT_TOKEN}
     TELEGRAM_CHAT_ID: ${env:TELEGRAM_CHAT_ID}
+    MESSAGE_THREAD_ID: ${env:MESSAGE_THREAD_ID} # Required: topic thread ID in Telegram group
     # API keys
     RAPIDAPI_KEY: ${env:RAPIDAPI_KEY, ''}
     COINGECKO_API_KEY: ${env:COINGECKO_API_KEY, ''}

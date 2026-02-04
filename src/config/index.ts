@@ -44,6 +44,7 @@ function mergeConfigs(yamlConfig: Record<string, unknown>): Record<string, unkno
       botToken: process.env['TELEGRAM_BOT_TOKEN'],
       allowedChatIds: process.env['TELEGRAM_CHAT_ID'] ? [process.env['TELEGRAM_CHAT_ID']] : undefined,
       adminChatIds: process.env['TELEGRAM_ADMIN_ID'] ? [process.env['TELEGRAM_ADMIN_ID']] : undefined,
+      messageThreadId: process.env['MESSAGE_THREAD_ID'] ? parseInt(process.env['MESSAGE_THREAD_ID'], 10) : undefined,
     },
     collectors: {
       twitter: {
