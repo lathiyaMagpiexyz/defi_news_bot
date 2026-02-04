@@ -76,5 +76,79 @@ export interface CoinGeckoToken {
   total_supply: number | null;
 }
 
+// Phase 2: CryptoPanic types
+export interface RawCryptoPanicData {
+  source: 'CRYPTOPANIC';
+  timestamp: Date;
+  posts: CryptoPanicPost[];
+}
+
+export interface CryptoPanicPost {
+  id: number;
+  title: string;
+  publishedAt: Date;
+  url: string;
+  domain: string;
+  currencies?: Array<{ code: string; title: string }>;
+  votes: { positive: number; negative: number; important: number; liked: number };
+  kind: 'news' | 'media';
+}
+
+// Phase 2: Snapshot types
+export interface RawSnapshotData {
+  source: 'SNAPSHOT';
+  timestamp: Date;
+  proposals: SnapshotProposal[];
+}
+
+export interface SnapshotProposal {
+  id: string;
+  title: string;
+  body: string;
+  start: number;
+  end: number;
+  state: 'active' | 'closed' | 'pending';
+  space: { id: string; name: string };
+  choices: string[];
+  scores: number[];
+  scores_total: number;
+  author: string;
+  link: string;
+}
+
+// Phase 2: Token Unlocks types
+export interface RawTokenUnlocksData {
+  source: 'TOKEN_UNLOCKS';
+  timestamp: Date;
+  unlocks: TokenUnlockEvent[];
+}
+
+export interface TokenUnlockEvent {
+  project: string;
+  symbol: string;
+  unlockDate: Date;
+  amount: number;
+  usdValue: number;
+  unlockType: 'cliff' | 'linear' | 'team' | 'investor' | 'ecosystem' | 'other';
+  percentOfCirculating: number;
+}
+
+// Phase 2: L2Beat types
+export interface RawL2BeatData {
+  source: 'L2BEAT';
+  timestamp: Date;
+  projects: L2BeatProject[];
+}
+
+export interface L2BeatProject {
+  id: string;
+  name: string;
+  slug: string;
+  tvl: number;
+  tvlChange7d: number;
+  category: 'Optimistic Rollup' | 'ZK Rollup' | 'Validium' | 'Optimium' | 'Other';
+  stage?: string;
+}
+
 // Union type for all raw data
-export type RawData = RawTVLData | RawTweet | RawPriceData;
+export type RawData = RawTVLData | RawTweet | RawPriceData | RawCryptoPanicData | RawSnapshotData | RawTokenUnlocksData | RawL2BeatData;

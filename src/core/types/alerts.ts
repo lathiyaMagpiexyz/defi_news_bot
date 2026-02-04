@@ -8,6 +8,10 @@ export enum AlertCategory {
   SECURITY = 'SECURITY',
   NARRATIVE = 'NARRATIVE',
   STABLECOIN_DEPEG = 'STABLECOIN_DEPEG',
+  // Phase 2 categories
+  LIQUIDATION = 'LIQUIDATION',
+  GAS_PRICE = 'GAS_PRICE',
+  DEX_VOLUME = 'DEX_VOLUME',
 }
 
 export enum AlertPriority {
@@ -21,6 +25,11 @@ export enum AlertSource {
   DEFILLAMA = 'DEFILLAMA',
   TWITTER = 'TWITTER',
   COINGECKO = 'COINGECKO',
+  // Phase 2 sources
+  CRYPTOPANIC = 'CRYPTOPANIC',
+  SNAPSHOT = 'SNAPSHOT',
+  TOKEN_UNLOCKS = 'TOKEN_UNLOCKS',
+  L2BEAT = 'L2BEAT',
 }
 
 export interface Alert {
@@ -58,6 +67,15 @@ export interface AlertDetails {
 
   // Stablecoin de-peg specific
   stablecoinDepeg?: StablecoinDepegDetails;
+
+  // Phase 2 detail types
+  liquidation?: LiquidationDetails;
+  gasPrice?: GasPriceDetails;
+  dexVolume?: DEXVolumeDetails;
+  news?: NewsDetails;
+  proposal?: ProposalDetails;
+  tokenUnlock?: TokenUnlockDetails;
+  l2Tvl?: L2TvlDetails;
 
   // Raw content
   rawContent?: string;
@@ -130,6 +148,81 @@ export interface StablecoinDepegDetails {
   direction: 'ABOVE' | 'BELOW';
 }
 
+// Phase 2 detail interfaces
+export interface LiquidationDetails {
+  protocol: string;
+  chain: string;
+  liquidator?: string;
+  borrower?: string;
+  collateralToken: string;
+  debtToken: string;
+  collateralAmount: number;
+  debtAmount: number;
+  usdValue: number;
+  txHash?: string;
+}
+
+export interface GasPriceDetails {
+  chain: string;
+  currentGwei: number;
+  avgGwei24h: number;
+  percentIncrease: number;
+  baseFee?: number;
+  priorityFee?: number;
+}
+
+export interface DEXVolumeDetails {
+  dex: string;
+  chain: string;
+  volume24h: number;
+  previousVolume24h: number;
+  percentChange: number;
+  topPairs?: Array<{ pair: string; volume: number }>;
+}
+
+export interface NewsDetails {
+  title: string;
+  source: string;
+  url: string;
+  publishedAt: Date;
+  sentiment?: 'positive' | 'negative' | 'neutral';
+  currencies?: string[];
+  votes?: { positive: number; negative: number; important: number };
+}
+
+export interface ProposalDetails {
+  proposalId: string;
+  space: string;
+  spaceName: string;
+  title: string;
+  state: 'active' | 'closed' | 'pending';
+  startTime: Date;
+  endTime: Date;
+  choices: string[];
+  scores?: number[];
+  quorum?: number;
+  link: string;
+}
+
+export interface TokenUnlockDetails {
+  project: string;
+  symbol: string;
+  unlockDate: Date;
+  amount: number;
+  usdValue: number;
+  unlockType: 'cliff' | 'linear' | 'team' | 'investor' | 'ecosystem' | 'other';
+  percentOfCirculating: number;
+}
+
+export interface L2TvlDetails {
+  l2Name: string;
+  tvl: number;
+  previousTvl: number;
+  changePercent: number;
+  category: string;
+  stage?: string;
+}
+
 export interface AlertMetadata {
   protocolId?: string;
   chainId?: string;
@@ -138,6 +231,11 @@ export interface AlertMetadata {
   tweetId?: string;
   defillamaSlug?: string;
   coingeckoId?: string;
+  // Phase 2 metadata
+  cryptopanicPostId?: number;
+  snapshotProposalId?: string;
+  snapshotSpace?: string;
+  l2beatProjectId?: string;
   tags: string[];
 }
 

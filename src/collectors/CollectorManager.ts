@@ -3,6 +3,11 @@ import { getConfig } from '../config/index.js';
 import { DefiLlamaCollector } from './defillama/DefiLlamaCollector.js';
 import { CoinGeckoCollector } from './coingecko/CoinGeckoCollector.js';
 import { TwitterCollector } from './twitter/TwitterCollector.js';
+// Phase 2 collectors
+import { CryptoPanicCollector } from './cryptopanic/CryptoPanicCollector.js';
+import { L2BeatCollector } from './l2beat/L2BeatCollector.js';
+import { SnapshotCollector } from './snapshot/SnapshotCollector.js';
+import { TokenUnlocksCollector } from './tokenunlocks/TokenUnlocksCollector.js';
 import type { BaseCollector, CollectorStatus } from './BaseCollector.js';
 
 const logger = createLogger('CollectorManager');
@@ -33,6 +38,31 @@ export class CollectorManager {
     if (config.collectors.twitter.enabled) {
       this.collectors.set('twitter', new TwitterCollector());
       logger.info('Twitter collector initialized');
+    }
+
+    // Phase 2 collectors
+    // Initialize CryptoPanic collector
+    if (config.collectors.cryptopanic.enabled) {
+      this.collectors.set('cryptopanic', new CryptoPanicCollector());
+      logger.info('CryptoPanic collector initialized');
+    }
+
+    // Initialize L2Beat collector
+    if (config.collectors.l2beat.enabled) {
+      this.collectors.set('l2beat', new L2BeatCollector());
+      logger.info('L2Beat collector initialized');
+    }
+
+    // Initialize Snapshot collector
+    if (config.collectors.snapshot.enabled) {
+      this.collectors.set('snapshot', new SnapshotCollector());
+      logger.info('Snapshot collector initialized');
+    }
+
+    // Initialize Token Unlocks collector
+    if (config.collectors.tokenUnlocks.enabled) {
+      this.collectors.set('tokenunlocks', new TokenUnlocksCollector());
+      logger.info('TokenUnlocks collector initialized');
     }
   }
 

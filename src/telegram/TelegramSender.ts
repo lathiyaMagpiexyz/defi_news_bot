@@ -39,6 +39,11 @@ function formatAlert(alert: Alert): string {
     GOVERNANCE: '🏛',
     SECURITY: '🚨',
     NARRATIVE: '📊',
+    STABLECOIN_DEPEG: '⚠️',
+    // Phase 2 emojis
+    LIQUIDATION: '💧',
+    GAS_PRICE: '⛽',
+    DEX_VOLUME: '📊',
   };
 
   const emoji = emojis[alert.category] || '📢';
@@ -57,8 +62,41 @@ function formatAlert(alert: Alert): string {
     msg += `\nSeverity: ${alert.details.security.severityLevel}\n`;
   }
 
+  // Phase 2 detail formatting
+  if (alert.details.l2Tvl) {
+    const { l2Name, tvl, changePercent, category } = alert.details.l2Tvl;
+    const sign = changePercent >= 0 ? '+' : '';
+    msg += `\n🔗 ${l2Name} (${category})`;
+    msg += `\n📊 TVL: $${formatNum(tvl)} (${sign}${changePercent.toFixed(1)}% 7d)\n`;
+  }
+
+  if (alert.details.proposal) {
+    const { spaceName, choices, endTime } = alert.details.proposal;
+    const endDate = new Date(endTime).toLocaleDateString();
+    msg += `\n🏛 Space: ${spaceName}`;
+    msg += `\n⏰ Ends: ${endDate}`;
+    msg += `\n📋 Options: ${choices.slice(0, 3).join(', ')}${choices.length > 3 ? '...' : ''}\n`;
+  }
+
+  if (alert.details.tokenUnlock) {
+    const { project, symbol, usdValue, percentOfCirculating, unlockDate } = alert.details.tokenUnlock;
+    const date = new Date(unlockDate).toLocaleDateString();
+    msg += `\n🪙 ${project} (${symbol})`;
+    msg += `\n💵 Value: $${formatNum(usdValue)}`;
+    msg += `\n📊 % of Supply: ${percentOfCirculating.toFixed(1)}%`;
+    msg += `\n📅 Date: ${date}\n`;
+  }
+
+  if (alert.details.news) {
+    const { source, votes } = alert.details.news;
+    msg += `\n📰 Source: ${source}`;
+    if (votes) {
+      msg += `\n👍 ${votes.positive} 👎 ${votes.negative} ⭐ ${votes.important}\n`;
+    }
+  }
+
   if (alert.details.sourceUrl) {
-    msg += `\n${alert.details.sourceUrl}`;
+    msg += `\n🔗 ${alert.details.sourceUrl}`;
   }
 
   return msg;

@@ -89,16 +89,40 @@ class RateLimiter {
 // Singleton rate limiters for each service
 const rateLimiters: Map<string, RateLimiter> = new Map();
 
-export function getRateLimiter(service: 'defillama' | 'twitter' | 'coingecko'): RateLimiter {
+type ServiceName =
+  | 'defillama'
+  | 'twitter'
+  | 'coingecko'
+  | 'cryptopanic'
+  | 'snapshot'
+  | 'tokenUnlocks'
+  | 'l2beat';
+
+export function getRateLimiter(service: ServiceName): RateLimiter {
   if (!rateLimiters.has(service)) {
     const config = getConfig();
     const serviceConfig = config.rateLimit[service];
 
+    // Handle different rate limit config structures
+    let requestsPerMinute = 10; // default
+    let burstLimit = 5; // default
+
+    if ('requestsPerMinute' in serviceConfig) {
+      requestsPerMinute = serviceConfig.requestsPerMinute;
+    } else if ('requestsPerSecond' in serviceConfig) {
+      // Convert requests per second to per minute (Etherscan uses this)
+      requestsPerMinute = (serviceConfig as { requestsPerSecond: number }).requestsPerSecond * 60;
+    }
+
+    if ('burstLimit' in serviceConfig) {
+      burstLimit = serviceConfig.burstLimit;
+    }
+
     rateLimiters.set(
       service,
       new RateLimiter(service, {
-        requestsPerMinute: serviceConfig.requestsPerMinute,
-        burstLimit: 'burstLimit' in serviceConfig ? serviceConfig.burstLimit : 5,
+        requestsPerMinute,
+        burstLimit,
       })
     );
   }

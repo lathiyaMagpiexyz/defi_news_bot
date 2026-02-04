@@ -15,7 +15,10 @@ import type {
   RawTVLData,
   RawTweet,
   RawPriceData,
-  RawData,
+  RawCryptoPanicData,
+  RawSnapshotData,
+  RawTokenUnlocksData,
+  RawL2BeatData,
 } from '../core/types/sources.js';
 
 const logger = createLogger('SignalProcessor');
@@ -29,6 +32,12 @@ export class SignalProcessor {
     eventBus.on('collector:tvl', (data) => this.processTVLData(data));
     eventBus.on('collector:tweet', (data) => this.processTweet(data));
     eventBus.on('collector:price', (data) => this.processPriceData(data));
+
+    // Phase 2 event subscriptions
+    eventBus.on('collector:news', (data) => this.processNewsData(data));
+    eventBus.on('collector:governance', (data) => this.processGovernanceData(data));
+    eventBus.on('collector:unlock', (data) => this.processUnlockData(data));
+    eventBus.on('collector:l2', (data) => this.processL2Data(data));
 
     logger.info('SignalProcessor initialized');
   }
@@ -79,6 +88,180 @@ export class SignalProcessor {
 
     // Price data is mainly for enrichment and future alerts
     // For now, we just store it via the collector
+  }
+
+  // Phase 2: Process news data from CryptoPanic
+  private async processNewsData(data: RawCryptoPanicData): Promise<void> {
+    logger.debug(`Processing news data: ${data.posts.length} posts`);
+
+    for (const post of data.posts) {
+      // Calculate importance score
+      const importanceScore = post.votes.important + post.votes.positive - post.votes.negative;
+
+      if (importanceScore < 5) {
+        continue; // Skip low-importance news
+      }
+
+      const alert: Alert = {
+        id: uuidv4(),
+        category: AlertCategory.SECURITY, // News often relates to security
+        priority: importanceScore >= 20 ? AlertPriority.HIGH : AlertPriority.MEDIUM,
+        source: AlertSource.CRYPTOPANIC,
+        title: `📰 NEWS - ${post.title.substring(0, 60)}${post.title.length > 60 ? '...' : ''}`,
+        summary: post.title,
+        details: {
+          news: {
+            title: post.title,
+            source: post.domain,
+            url: post.url,
+            publishedAt: post.publishedAt,
+            currencies: post.currencies?.map((c) => c.code),
+            votes: {
+              positive: post.votes.positive,
+              negative: post.votes.negative,
+              important: post.votes.important,
+            },
+          },
+          sourceUrl: post.url,
+        },
+        metadata: {
+          cryptopanicPostId: post.id,
+          tags: ['news', post.domain, ...(post.currencies?.map((c) => c.code.toLowerCase()) || [])],
+        },
+        createdAt: new Date(),
+      };
+
+      await this.emitAlert(alert);
+    }
+  }
+
+  // Phase 2: Process governance proposals from Snapshot
+  private async processGovernanceData(data: RawSnapshotData): Promise<void> {
+    logger.debug(`Processing governance data: ${data.proposals.length} proposals`);
+
+    for (const proposal of data.proposals) {
+      // Only alert on active proposals
+      if (proposal.state !== 'active') {
+        continue;
+      }
+
+      const alert: Alert = {
+        id: uuidv4(),
+        category: AlertCategory.GOVERNANCE,
+        priority: AlertPriority.MEDIUM,
+        source: AlertSource.SNAPSHOT,
+        title: `🏛 GOVERNANCE - ${proposal.space.name}: ${proposal.title.substring(0, 40)}${proposal.title.length > 40 ? '...' : ''}`,
+        summary: `New proposal in ${proposal.space.name}: "${proposal.title}"`,
+        details: {
+          proposal: {
+            proposalId: proposal.id,
+            space: proposal.space.id,
+            spaceName: proposal.space.name,
+            title: proposal.title,
+            state: proposal.state,
+            startTime: new Date(proposal.start * 1000),
+            endTime: new Date(proposal.end * 1000),
+            choices: proposal.choices,
+            scores: proposal.scores,
+            link: proposal.link,
+          },
+          sourceUrl: proposal.link,
+        },
+        metadata: {
+          snapshotProposalId: proposal.id,
+          snapshotSpace: proposal.space.id,
+          tags: ['governance', 'snapshot', proposal.space.id],
+        },
+        createdAt: new Date(),
+      };
+
+      await this.emitAlert(alert);
+    }
+  }
+
+  // Phase 2: Process token unlock data
+  private async processUnlockData(data: RawTokenUnlocksData): Promise<void> {
+    logger.debug(`Processing unlock data: ${data.unlocks.length} unlocks`);
+
+    for (const unlock of data.unlocks) {
+      const alert: Alert = {
+        id: uuidv4(),
+        category: AlertCategory.TOKEN_EVENT,
+        priority: unlock.percentOfCirculating >= 5 ? AlertPriority.HIGH : AlertPriority.MEDIUM,
+        source: AlertSource.TOKEN_UNLOCKS,
+        title: `🔓 TOKEN UNLOCK - ${unlock.symbol}: $${this.formatNumber(unlock.usdValue)}`,
+        summary: `${unlock.project} (${unlock.symbol}) unlocking ${unlock.percentOfCirculating.toFixed(1)}% of circulating supply`,
+        details: {
+          tokenUnlock: {
+            project: unlock.project,
+            symbol: unlock.symbol,
+            unlockDate: unlock.unlockDate,
+            amount: unlock.amount,
+            usdValue: unlock.usdValue,
+            unlockType: unlock.unlockType,
+            percentOfCirculating: unlock.percentOfCirculating,
+          },
+          tokenEvent: {
+            eventType: 'VC_UNLOCK',
+            tokenSymbol: unlock.symbol,
+            amount: unlock.amount,
+            usdValue: unlock.usdValue,
+            unlockDate: unlock.unlockDate,
+          },
+          sourceUrl: `https://token.unlocks.app/${unlock.project.toLowerCase()}`,
+        },
+        metadata: {
+          tags: ['unlock', unlock.symbol.toLowerCase(), unlock.unlockType],
+        },
+        createdAt: new Date(),
+      };
+
+      await this.emitAlert(alert);
+    }
+  }
+
+  // Phase 2: Process L2 TVL data from L2Beat
+  private async processL2Data(data: RawL2BeatData): Promise<void> {
+    logger.debug(`Processing L2 data: ${data.projects.length} projects`);
+
+    const config = getConfig();
+    const minChangePercent = config.collectors.l2beat.minChangePercent;
+
+    for (const project of data.projects) {
+      // Only alert on significant TVL changes
+      if (Math.abs(project.tvlChange7d) < minChangePercent) {
+        continue;
+      }
+
+      const changeDirection = project.tvlChange7d >= 0 ? '📈' : '📉';
+
+      const alert: Alert = {
+        id: uuidv4(),
+        category: AlertCategory.TVL_CHANGE,
+        priority: Math.abs(project.tvlChange7d) >= 20 ? AlertPriority.HIGH : AlertPriority.MEDIUM,
+        source: AlertSource.L2BEAT,
+        title: `${changeDirection} L2 TVL - ${project.name}: ${project.tvlChange7d >= 0 ? '+' : ''}${project.tvlChange7d.toFixed(1)}%`,
+        summary: `${project.name} TVL ${project.tvlChange7d >= 0 ? 'increased' : 'decreased'} by ${Math.abs(project.tvlChange7d).toFixed(1)}% (7d)`,
+        details: {
+          l2Tvl: {
+            l2Name: project.name,
+            tvl: project.tvl,
+            previousTvl: project.tvl / (1 + project.tvlChange7d / 100),
+            changePercent: project.tvlChange7d,
+            category: project.category,
+            stage: project.stage,
+          },
+          sourceUrl: `https://l2beat.com/scaling/projects/${project.slug}`,
+        },
+        metadata: {
+          l2beatProjectId: project.id,
+          tags: ['l2', 'tvl', project.category.toLowerCase().replace(' ', '-')],
+        },
+        createdAt: new Date(),
+      };
+
+      await this.emitAlert(alert);
+    }
   }
 
   // Create alert from tweet based on matched category
@@ -249,6 +432,20 @@ export class SignalProcessor {
     }
 
     return undefined;
+  }
+
+  // Phase 2 helper methods
+  private formatNumber(num: number): string {
+    if (num >= 1e9) {
+      return (num / 1e9).toFixed(2) + 'B';
+    }
+    if (num >= 1e6) {
+      return (num / 1e6).toFixed(2) + 'M';
+    }
+    if (num >= 1e3) {
+      return (num / 1e3).toFixed(2) + 'K';
+    }
+    return num.toFixed(2);
   }
 }
 

@@ -94,3 +94,76 @@ categories:
     negative:
       - "speculation"
       - "might unlock"
+
+  # Phase 2 Categories
+
+  # HIGH: Liquidations
+  LIQUIDATION:
+    primary:
+      - "liquidation"
+      - "liquidated"
+      - "position liquidated"
+      - "mass liquidation"
+      - "liquidation cascade"
+    secondary:
+      - "margin call"
+      - "underwater"
+      - "health factor"
+    negative:
+      - "near liquidation"
+      - "risk of"
+
+  # MEDIUM: Gas prices
+  GAS_PRICE:
+    primary:
+      - "gas spike"
+      - "high gas"
+      - "gas fees"
+      - "gas war"
+      - "gwei"
+    secondary:
+      - "congestion"
+      - "network busy"
+      - "priority fee"
+    negative: []
+
+  # MEDIUM: DEX volume
+  DEX_VOLUME:
+    primary:
+      - "volume surge"
+      - "trading volume"
+      - "record volume"
+      - "volume ATH"
+    secondary:
+      - "DEX"
+      - "swap"
+      - "trading activity"
+    negative:
+      - "wash trading"
+
+  # LOW: Governance proposals
+  GOVERNANCE:
+    primary:
+      - "proposal"
+      - "governance vote"
+      - "voting live"
+      - "DAO vote"
+    secondary:
+      - "quorum"
+      - "snapshot"
+    negative:
+      - "opinion"
+      - "should vote"
+
+  # LOW: Narrative/trends
+  NARRATIVE:
+    primary:
+      - "narrative shift"
+      - "trending"
+      - "new meta"
+    secondary:
+      - "trend"
+      - "sector"
+    negative:
+      - "might be"
+      - "speculation"

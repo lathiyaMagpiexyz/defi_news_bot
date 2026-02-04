@@ -81,9 +81,8 @@ collectors:
     enabled: true
     rapidApiKey: "${RAPIDAPI_KEY}"
     pollingIntervalMs: 180000  # 3 minutes
-    # FOCUSED: Security accounts only for high-value alerts
     priorityAccounts:
-      # Security Researchers (HIGH PRIORITY)
+      # Security Researchers (CRITICAL)
       - "PeckShieldAlert"
       - "BlockSecTeam"
       - "certikiAlert"
@@ -91,12 +90,24 @@ collectors:
       - "samczsun"
       - "zachxbt"
 
-      # Official Protocol Accounts (for confirmed announcements)
+      # DeFi Analysts (HIGH VALUE)
+      - "DefiIgnas"
+      - "Defi_Made_Here"
+      - "Route2FI"
+
+      # Official Protocol Accounts
       - "eigenlayer"
       - "LidoFinance"
       - "AaveAave"
       - "Uniswap"
       - "MakerDAO"
+      - "CurveFinance"
+
+      # News & Research
+      - "DefiLlama"
+      - "MessariCrypto"
+      - "TheBlock__"
+      - "DuneAnalytics"
 
   coingecko:
     enabled: true
@@ -116,6 +127,47 @@ collectors:
       - "ethereum"
       - "bitcoin"
       - "solana"
+
+  # Phase 2 Collectors
+  cryptopanic:
+    enabled: false  # Enable when API key is configured
+    apiKey: "${CRYPTOPANIC_API_KEY}"
+    baseUrl: "https://cryptopanic.com/api/v1"
+    pollingIntervalMs: 180000  # 3 minutes (free tier: 5 calls/min)
+    currencies:
+      - "ETH"
+      - "BTC"
+      - "SOL"
+      - "ARB"
+      - "OP"
+    filter: "important"
+
+  snapshot:
+    enabled: false
+    graphqlUrl: "https://hub.snapshot.org/graphql"
+    pollingIntervalMs: 600000  # 10 minutes
+    watchedSpaces:
+      - "aave.eth"
+      - "uniswap"
+      - "ens.eth"
+      - "lido-snapshot.eth"
+      - "safe.eth"
+      - "arbitrumfoundation.eth"
+
+  tokenUnlocks:
+    enabled: false
+    apiKey: "${TOKEN_UNLOCKS_API_KEY}"
+    baseUrl: "https://token.unlocks.app/api"
+    pollingIntervalMs: 3600000  # 1 hour
+    minUnlockValueUsd: 10000000  # $10M+ unlocks
+    daysAhead: 7
+
+  l2beat:
+    enabled: false
+    baseUrl: "https://l2beat.com/api"
+    pollingIntervalMs: 600000  # 10 minutes
+    minTvlUsd: 100000000  # $100M+ L2s
+    minChangePercent: 10  # 10%+ changes
 
 alerts:
   globalCooldownMs: 300000  # 5 minutes between alerts
@@ -179,6 +231,32 @@ alerts:
       thresholds:
         minMentions: 10
 
+    # Phase 2 Categories
+    # HIGH: Liquidations ($100K+)
+    LIQUIDATION:
+      enabled: true
+      priority: 3  # HIGH
+      cooldownMs: 300000
+      thresholds:
+        minValueUsd: 100000
+
+    # MEDIUM: Gas spikes
+    GAS_PRICE:
+      enabled: true
+      priority: 2  # MEDIUM
+      cooldownMs: 1800000  # 30 minutes
+      thresholds:
+        minGwei: 50
+        minPercentIncrease: 100
+
+    # MEDIUM: DEX volume surges
+    DEX_VOLUME:
+      enabled: true
+      priority: 2  # MEDIUM
+      cooldownMs: 3600000  # 1 hour
+      thresholds:
+        minPercentIncrease: 200
+
 storage:
   databasePath: "./data/defi_bot.db"
   backupEnabled: true
@@ -197,3 +275,20 @@ rateLimit:
   coingecko:
     requestsPerMinute: 10
     monthlyCallLimit: 8000
+
+  # Phase 2 rate limits
+  cryptopanic:
+    requestsPerMinute: 5  # Free tier: 5 calls/min
+    burstLimit: 1
+
+  snapshot:
+    requestsPerMinute: 30
+    burstLimit: 5
+
+  tokenUnlocks:
+    requestsPerMinute: 10
+    burstLimit: 2
+
+  l2beat:
+    requestsPerMinute: 10
+    burstLimit: 2

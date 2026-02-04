@@ -63,6 +63,47 @@ export const configSchema = z.object({
         'optimism',
       ]),
     }),
+
+    // Phase 2 collectors
+    cryptopanic: z.object({
+      enabled: z.boolean().default(false),
+      apiKey: z.string().optional().default(''),
+      baseUrl: z.string().url().default('https://cryptopanic.com/api/v1'),
+      pollingIntervalMs: z.number().min(60000).default(180000),
+      currencies: z.array(z.string()).default(['ETH', 'BTC', 'SOL', 'ARB', 'OP']),
+      filter: z.enum(['rising', 'hot', 'bullish', 'bearish', 'important', 'lol']).default('important'),
+    }),
+
+    snapshot: z.object({
+      enabled: z.boolean().default(false),
+      graphqlUrl: z.string().url().default('https://hub.snapshot.org/graphql'),
+      pollingIntervalMs: z.number().min(60000).default(600000),
+      watchedSpaces: z.array(z.string()).default([
+        'aave.eth',
+        'uniswap',
+        'ens.eth',
+        'lido-snapshot.eth',
+        'safe.eth',
+        'arbitrumfoundation.eth',
+      ]),
+    }),
+
+    tokenUnlocks: z.object({
+      enabled: z.boolean().default(false),
+      apiKey: z.string().optional().default(''),
+      baseUrl: z.string().url().default('https://token.unlocks.app/api'),
+      pollingIntervalMs: z.number().min(60000).default(3600000),
+      minUnlockValueUsd: z.number().default(10000000),
+      daysAhead: z.number().default(7),
+    }),
+
+    l2beat: z.object({
+      enabled: z.boolean().default(false),
+      baseUrl: z.string().url().default('https://l2beat.com/api'),
+      pollingIntervalMs: z.number().min(60000).default(600000),
+      minTvlUsd: z.number().default(100000000),
+      minChangePercent: z.number().default(10),
+    }),
   }),
 
   alerts: z.object({
@@ -125,6 +166,32 @@ export const configSchema = z.object({
           minDeviationPercent: 1,
         },
       }),
+      // Phase 2 alert categories
+      [AlertCategory.LIQUIDATION]: categoryConfigSchema.default({
+        enabled: true,
+        priority: AlertPriority.HIGH,
+        cooldownMs: 300000,
+        thresholds: {
+          minValueUsd: 100000,
+        },
+      }),
+      [AlertCategory.GAS_PRICE]: categoryConfigSchema.default({
+        enabled: true,
+        priority: AlertPriority.MEDIUM,
+        cooldownMs: 1800000,
+        thresholds: {
+          minGwei: 50,
+          minPercentIncrease: 100,
+        },
+      }),
+      [AlertCategory.DEX_VOLUME]: categoryConfigSchema.default({
+        enabled: true,
+        priority: AlertPriority.MEDIUM,
+        cooldownMs: 3600000,
+        thresholds: {
+          minPercentIncrease: 200,
+        },
+      }),
     }),
   }),
 
@@ -147,6 +214,23 @@ export const configSchema = z.object({
     coingecko: z.object({
       requestsPerMinute: z.number().min(1).default(25),
       monthlyCallLimit: z.number().min(1).default(8000),
+    }),
+    // Phase 2 rate limits
+    cryptopanic: z.object({
+      requestsPerMinute: z.number().min(1).default(5),
+      burstLimit: z.number().min(1).default(1),
+    }),
+    snapshot: z.object({
+      requestsPerMinute: z.number().min(1).default(30),
+      burstLimit: z.number().min(1).default(5),
+    }),
+    tokenUnlocks: z.object({
+      requestsPerMinute: z.number().min(1).default(10),
+      burstLimit: z.number().min(1).default(2),
+    }),
+    l2beat: z.object({
+      requestsPerMinute: z.number().min(1).default(10),
+      burstLimit: z.number().min(1).default(2),
     }),
   }),
 });

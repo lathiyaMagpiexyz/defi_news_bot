@@ -1,7 +1,15 @@
 import { EventEmitter } from 'events';
 import { createLogger } from '../../utils/logger.js';
 import type { Alert, AlertCategory } from '../types/alerts.js';
-import type { RawTVLData, RawTweet, RawPriceData } from '../types/sources.js';
+import type {
+  RawTVLData,
+  RawTweet,
+  RawPriceData,
+  RawCryptoPanicData,
+  RawSnapshotData,
+  RawTokenUnlocksData,
+  RawL2BeatData,
+} from '../types/sources.js';
 
 const logger = createLogger('EventBus');
 
@@ -11,6 +19,11 @@ export interface EventMap {
   'collector:tvl': RawTVLData;
   'collector:tweet': RawTweet;
   'collector:price': RawPriceData;
+  // Phase 2 collector events
+  'collector:news': RawCryptoPanicData;
+  'collector:governance': RawSnapshotData;
+  'collector:unlock': RawTokenUnlocksData;
+  'collector:l2': RawL2BeatData;
 
   // Processed signal events
   'signal:alert': Alert;
@@ -99,6 +112,19 @@ class EventBus extends TypedEventEmitter {
     }
     if ('tokens' in obj && Array.isArray(obj.tokens)) {
       return { ...obj, tokens: `[${obj.tokens.length} tokens]` };
+    }
+    // Phase 2 summaries
+    if ('posts' in obj && Array.isArray(obj.posts)) {
+      return { ...obj, posts: `[${obj.posts.length} posts]` };
+    }
+    if ('proposals' in obj && Array.isArray(obj.proposals)) {
+      return { ...obj, proposals: `[${obj.proposals.length} proposals]` };
+    }
+    if ('unlocks' in obj && Array.isArray(obj.unlocks)) {
+      return { ...obj, unlocks: `[${obj.unlocks.length} unlocks]` };
+    }
+    if ('projects' in obj && Array.isArray(obj.projects)) {
+      return { ...obj, projects: `[${obj.projects.length} projects]` };
     }
 
     return payload;
