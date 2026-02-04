@@ -4,7 +4,7 @@ service: defi-news-bot
 provider:
   name: aws
   runtime: nodejs20.x
-  region: ${opt:region, 'us-east-1'}
+  region: ${opt:region, 'us-west-1'}
   stage: ${opt:stage, 'prod'}
   timeout: 60  # 60 seconds (current execution ~33s)
   memorySize: 512  # MB
@@ -50,6 +50,7 @@ package:
   individually: true
   patterns:
     - '!**/*'
+    - 'package.json'
     - 'dist/**'
     - 'config/**'
     - 'node_modules/**'
@@ -61,8 +62,8 @@ package:
     - '!src/**'
     - '!tests/**'
 
-plugins:
-  - serverless-offline  # For local testing (optional)
+# plugins:
+#   - serverless-offline  # For local testing (optional)
 
 custom:
   serverless-offline:

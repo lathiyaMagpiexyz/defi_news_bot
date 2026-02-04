@@ -2,9 +2,12 @@ import winston from 'winston';
 import { existsSync, mkdirSync } from 'fs';
 import path from 'path';
 
-// Ensure logs directory exists
-const logsDir = './logs';
-if (!existsSync(logsDir)) {
+// Check if running in Lambda environment
+const isLambda = !!process.env['AWS_LAMBDA_FUNCTION_NAME'];
+
+// Ensure logs directory exists (only for local environment)
+const logsDir = isLambda ? '/tmp/logs' : './logs';
+if (!isLambda && !existsSync(logsDir)) {
   mkdirSync(logsDir, { recursive: true });
 }
 
@@ -46,14 +49,17 @@ const fileFormat = winston.format.combine(
   winston.format.json()
 );
 
-// Create logger instance
-export const logger = winston.createLogger({
-  level: process.env['LOG_LEVEL'] || 'info',
-  transports: [
-    // Console output
-    new winston.transports.Console({
-      format: consoleFormat,
-    }),
+// Build transports based on environment
+const transports: winston.transport[] = [
+  // Console output (CloudWatch captures this in Lambda)
+  new winston.transports.Console({
+    format: consoleFormat,
+  }),
+];
+
+// Add file transports only in local environment
+if (!isLambda) {
+  transports.push(
     // File output - all logs
     new winston.transports.File({
       filename: path.join(logsDir, 'app.log'),
@@ -68,8 +74,14 @@ export const logger = winston.createLogger({
       format: fileFormat,
       maxsize: 10 * 1024 * 1024,
       maxFiles: 5,
-    }),
-  ],
+    })
+  );
+}
+
+// Create logger instance
+export const logger = winston.createLogger({
+  level: process.env['LOG_LEVEL'] || 'info',
+  transports,
 });
 
 // Create child loggers for different modules
