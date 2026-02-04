@@ -117,6 +117,14 @@ export const configSchema = z.object({
           minMentions: 5,
         },
       }),
+      [AlertCategory.STABLECOIN_DEPEG]: categoryConfigSchema.default({
+        enabled: true,
+        priority: AlertPriority.CRITICAL,
+        cooldownMs: 60000,
+        thresholds: {
+          minDeviationPercent: 1,
+        },
+      }),
     }),
   }),
 

@@ -31,20 +31,20 @@ export interface EventMap {
 
 // Type-safe event emitter
 class TypedEventEmitter extends EventEmitter {
-  emit<K extends keyof EventMap>(event: K, payload: EventMap[K]): boolean {
-    return super.emit(event, payload);
+  override emit<K extends keyof EventMap>(event: K, payload: EventMap[K]): boolean {
+    return super.emit(event as string, payload);
   }
 
-  on<K extends keyof EventMap>(event: K, listener: (payload: EventMap[K]) => void): this {
-    return super.on(event, listener);
+  override on<K extends keyof EventMap>(event: K, listener: (payload: EventMap[K]) => void): this {
+    return super.on(event as string, listener);
   }
 
-  once<K extends keyof EventMap>(event: K, listener: (payload: EventMap[K]) => void): this {
-    return super.once(event, listener);
+  override once<K extends keyof EventMap>(event: K, listener: (payload: EventMap[K]) => void): this {
+    return super.once(event as string, listener);
   }
 
-  off<K extends keyof EventMap>(event: K, listener: (payload: EventMap[K]) => void): this {
-    return super.off(event, listener);
+  override off<K extends keyof EventMap>(event: K, listener: (payload: EventMap[K]) => void): this {
+    return super.off(event as string, listener);
   }
 }
 
@@ -74,8 +74,8 @@ class EventBus extends TypedEventEmitter {
   // Listen to all events (for debugging)
   private onAny(listener: (event: string, payload: unknown) => void): void {
     const originalEmit = this.emit.bind(this);
-    this.emit = ((event: string, payload: unknown) => {
-      listener(event, payload);
+    this.emit = (<K extends keyof EventMap>(event: K, payload: EventMap[K]) => {
+      listener(event as string, payload);
       return originalEmit(event, payload);
     }) as typeof this.emit;
   }
