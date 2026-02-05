@@ -182,14 +182,6 @@ alerts:
       thresholds:
         maxDeviationPercent: 0.5  # Alert if > 0.5% from $1.00
 
-    # CRITICAL: Security incidents
-    SECURITY:
-      enabled: true
-      priority: 4  # CRITICAL
-      cooldownMs: 0  # No cooldown
-      thresholds:
-        minLossValueUsd: 50000  # Alert on $50K+ exploits
-
     # HIGH: Large TVL changes on top protocols
     TVL_CHANGE:
       enabled: true
@@ -256,12 +248,6 @@ alerts:
       cooldownMs: 3600000  # 1 hour
       thresholds:
         minPercentIncrease: 200
-
-storage:
-  databasePath: "./data/defi_bot.db"
-  backupEnabled: true
-  backupIntervalHours: 24
-  maxAlertHistoryDays: 30
 
 rateLimit:
   defillama:

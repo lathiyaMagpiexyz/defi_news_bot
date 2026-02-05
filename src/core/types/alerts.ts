@@ -5,7 +5,6 @@ export enum AlertCategory {
   TVL_CHANGE = 'TVL_CHANGE',
   TOKEN_EVENT = 'TOKEN_EVENT',
   GOVERNANCE = 'GOVERNANCE',
-  SECURITY = 'SECURITY',
   NARRATIVE = 'NARRATIVE',
   STABLECOIN_DEPEG = 'STABLECOIN_DEPEG',
   // Phase 2 categories
@@ -58,9 +57,6 @@ export interface AlertDetails {
 
   // Governance-specific
   governance?: GovernanceDetails;
-
-  // Security-specific
-  security?: SecurityDetails;
 
   // Narrative-specific
   narrative?: NarrativeDetails;
@@ -119,16 +115,6 @@ export interface GovernanceDetails {
   newValue?: string | number;
   proposalUrl?: string;
   effectiveDate?: Date;
-}
-
-export interface SecurityDetails {
-  severityLevel: 'INFO' | 'WARNING' | 'HIGH' | 'CRITICAL';
-  eventType: 'EXPLOIT' | 'PAUSE' | 'AUDIT_ISSUE' | 'ABNORMAL_BEHAVIOR' | 'RUG_WARNING';
-  protocol?: string;
-  estimatedLoss?: number;
-  affectedChains?: string[];
-  txHash?: string;
-  auditFirm?: string;
 }
 
 export interface NarrativeDetails {
@@ -237,20 +223,4 @@ export interface AlertMetadata {
   snapshotSpace?: string;
   l2beatProjectId?: string;
   tags: string[];
-}
-
-// Database record type
-export interface AlertRecord {
-  id: string;
-  category: AlertCategory;
-  priority: AlertPriority;
-  source: AlertSource;
-  title: string;
-  summary: string;
-  detailsJson: string;
-  metadataJson: string;
-  deduplicationKey: string;
-  sentAt: Date;
-  telegramMessageId?: number;
-  chatId: string;
 }

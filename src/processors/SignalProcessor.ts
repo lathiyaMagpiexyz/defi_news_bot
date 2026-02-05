@@ -1,8 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '../utils/logger.js';
 import { eventBus } from '../core/events/EventBus.js';
-import { getConfig, getKeywords } from '../config/index.js';
-import { alertRepository } from '../storage/repositories/AlertRepository.js';
+import { getConfig } from '../config/index.js';
 import { keywordFilter, type KeywordMatch } from './filters/KeywordFilter.js';
 import { tvlAnalyzer } from './analyzers/TVLAnalyzer.js';
 import {
@@ -104,7 +103,7 @@ export class SignalProcessor {
 
       const alert: Alert = {
         id: uuidv4(),
-        category: AlertCategory.SECURITY, // News often relates to security
+        category: AlertCategory.NARRATIVE,
         priority: importanceScore >= 20 ? AlertPriority.HIGH : AlertPriority.MEDIUM,
         source: AlertSource.CRYPTOPANIC,
         title: `📰 NEWS - ${post.title.substring(0, 60)}${post.title.length > 60 ? '...' : ''}`,
@@ -274,9 +273,6 @@ export class SignalProcessor {
       case AlertCategory.INCENTIVE:
         title = `🎁 INCENTIVE SIGNAL - @${tweet.authorUsername}`;
         break;
-      case AlertCategory.SECURITY:
-        title = `🚨 SECURITY ALERT - @${tweet.authorUsername}`;
-        break;
       case AlertCategory.TOKEN_EVENT:
         title = `🪙 TOKEN EVENT - @${tweet.authorUsername}`;
         break;
@@ -307,14 +303,6 @@ export class SignalProcessor {
           match.category === AlertCategory.INCENTIVE
             ? this.detectIncentiveType(tweet.text)
             : undefined,
-        security:
-          match.category === AlertCategory.SECURITY
-            ? {
-                severityLevel: this.detectSecuritySeverity(tweet.text),
-                eventType: this.detectSecurityEventType(tweet.text),
-                protocol: this.extractProtocolName(tweet.text),
-              }
-            : undefined,
       },
       metadata: {
         twitterHandle: tweet.authorUsername,
@@ -328,23 +316,12 @@ export class SignalProcessor {
       createdAt: new Date(),
     };
 
-    // Boost priority for security alerts from trusted accounts
-    if (match.category === AlertCategory.SECURITY && match.isFromPriorityAccount) {
-      alert.priority = AlertPriority.CRITICAL;
-    }
-
     return alert;
   }
 
   // Emit alert if it passes all checks
   private async emitAlert(alert: Alert): Promise<void> {
     const config = getConfig();
-
-    // Check for duplicates
-    if (alertRepository.isDuplicate(alert)) {
-      logger.debug(`Duplicate alert filtered: ${alert.title}`);
-      return;
-    }
 
     // Check global cooldown
     const now = Date.now();
@@ -390,48 +367,6 @@ export class SignalProcessor {
     if (textLower.includes('season')) return 'SEASON';
     if (textLower.includes('points') || textLower.includes('xp')) return 'POINTS';
     return 'AIRDROP';
-  }
-
-  private detectSecuritySeverity(text: string): 'INFO' | 'WARNING' | 'HIGH' | 'CRITICAL' {
-    const textLower = text.toLowerCase();
-
-    if (textLower.includes('critical') || textLower.includes('drained') || textLower.includes('stolen')) {
-      return 'CRITICAL';
-    }
-    if (textLower.includes('exploit') || textLower.includes('hack') || textLower.includes('attack')) {
-      return 'HIGH';
-    }
-    if (textLower.includes('warning') || textLower.includes('suspicious') || textLower.includes('paused')) {
-      return 'WARNING';
-    }
-    return 'INFO';
-  }
-
-  private detectSecurityEventType(text: string): 'EXPLOIT' | 'PAUSE' | 'AUDIT_ISSUE' | 'ABNORMAL_BEHAVIOR' | 'RUG_WARNING' {
-    const textLower = text.toLowerCase();
-
-    if (textLower.includes('rug') || textLower.includes('scam')) return 'RUG_WARNING';
-    if (textLower.includes('exploit') || textLower.includes('hack') || textLower.includes('drained')) return 'EXPLOIT';
-    if (textLower.includes('paused') || textLower.includes('pause')) return 'PAUSE';
-    if (textLower.includes('audit')) return 'AUDIT_ISSUE';
-    return 'ABNORMAL_BEHAVIOR';
-  }
-
-  private extractProtocolName(text: string): string | undefined {
-    // Try to extract protocol name from common patterns
-    const patterns = [
-      /(?:on|at|from|@)\s+([A-Z][a-zA-Z0-9]+)/,
-      /([A-Z][a-zA-Z0-9]+)\s+(?:protocol|finance|swap|lend)/i,
-    ];
-
-    for (const pattern of patterns) {
-      const match = text.match(pattern);
-      if (match?.[1]) {
-        return match[1];
-      }
-    }
-
-    return undefined;
   }
 
   // Phase 2 helper methods

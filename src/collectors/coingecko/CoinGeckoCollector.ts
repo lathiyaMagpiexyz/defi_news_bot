@@ -2,7 +2,6 @@ import { BaseCollector } from '../BaseCollector.js';
 import { getCoingeckoClient } from '../../services/HttpClient.js';
 import { getRateLimiter } from '../../services/RateLimiter.js';
 import { eventBus } from '../../core/events/EventBus.js';
-import { database } from '../../storage/Database.js';
 import { getConfig } from '../../config/index.js';
 import { AlertSource } from '../../core/types/alerts.js';
 import type { RawPriceData, CoinGeckoToken } from '../../core/types/sources.js';
@@ -80,11 +79,6 @@ export class CoinGeckoCollector extends BaseCollector {
       total_supply: t.total_supply,
     }));
 
-    // Store token prices in database
-    for (const token of tokens) {
-      this.storeTokenPrice(token);
-    }
-
     // Emit raw data event
     const rawData: RawPriceData = {
       source: 'COINGECKO',
@@ -117,29 +111,6 @@ export class CoinGeckoCollector extends BaseCollector {
     });
   }
 
-  private storeTokenPrice(token: CoinGeckoToken): void {
-    const stmt = database.prepare(`
-      INSERT INTO token_prices (coingecko_id, symbol, name, current_price, price_change_24h, market_cap, last_updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(coingecko_id) DO UPDATE SET
-        symbol = excluded.symbol,
-        name = excluded.name,
-        current_price = excluded.current_price,
-        price_change_24h = excluded.price_change_24h,
-        market_cap = excluded.market_cap,
-        last_updated_at = excluded.last_updated_at
-    `);
-
-    stmt.run(
-      token.id,
-      token.symbol,
-      token.name,
-      token.current_price,
-      token.price_change_percentage_24h,
-      token.market_cap,
-      Date.now()
-    );
-  }
 }
 
 export default CoinGeckoCollector;

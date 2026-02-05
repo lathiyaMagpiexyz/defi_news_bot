@@ -1,7 +1,7 @@
 import { BaseCollector } from '../BaseCollector.js';
 import { eventBus } from '../../core/events/EventBus.js';
-import { getConfig, getKeywords } from '../../config/index.js';
-import { AlertSource, AlertCategory } from '../../core/types/alerts.js';
+import { getConfig } from '../../config/index.js';
+import { AlertSource } from '../../core/types/alerts.js';
 import type { RawTweet } from '../../core/types/sources.js';
 
 interface RapidAPITweet {
@@ -62,7 +62,6 @@ export class TwitterCollector extends BaseCollector {
     }
 
     const config = getConfig();
-    const keywords = getKeywords();
 
     // Collect from priority accounts
     const priorityAccounts = config.collectors.twitter.priorityAccounts;
@@ -74,17 +73,6 @@ export class TwitterCollector extends BaseCollector {
         await this.delay(1000);
       } catch (error) {
         this.logger.error(`Failed to collect from @${account}:`, error);
-      }
-    }
-
-    // Search for DeFi security keywords
-    const securityKeywords = keywords.categories[AlertCategory.SECURITY]?.primary.slice(0, 3) || [];
-    for (const keyword of securityKeywords) {
-      try {
-        await this.searchTweets(keyword);
-        await this.delay(1000);
-      } catch (error) {
-        this.logger.error(`Failed to search for "${keyword}":`, error);
       }
     }
 
@@ -135,46 +123,6 @@ export class TwitterCollector extends BaseCollector {
     if (tweets.length > 0) {
       this.logger.debug(`Collected ${tweets.length} tweets from @${username}`);
     }
-  }
-
-  private async searchTweets(query: string): Promise<void> {
-    const url = `https://${this.rapidApiHost}/search.php?query=${encodeURIComponent(query)}&search_type=Latest&count=10`;
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'X-RapidAPI-Key': this.rapidApiKey,
-        'X-RapidAPI-Host': this.rapidApiHost,
-      },
-    });
-
-    if (!response.ok) {
-      this.logger.warn(`RapidAPI search failed for "${query}": ${response.status}`);
-      return;
-    }
-
-    // Handle empty or invalid JSON responses
-    const text = await response.text();
-    if (!text || text.trim() === '') {
-      this.logger.debug(`Empty search response for "${query}", skipping`);
-      return;
-    }
-
-    let data: RapidAPISearchResponse;
-    try {
-      data = JSON.parse(text) as RapidAPISearchResponse;
-    } catch {
-      this.logger.debug(`Invalid JSON for search "${query}", skipping`);
-      return;
-    }
-
-    const tweets = data.timeline || data.results || [];
-
-    for (const tweet of tweets) {
-      this.processTweet(tweet, `search:${query}`);
-    }
-
-    this.logger.debug(`Found ${tweets.length} tweets for query "${query}"`);
   }
 
   private processTweet(tweet: RapidAPITweet, matchedRule: string): void {

@@ -2,7 +2,6 @@ import axios from 'axios';
 import { createLogger } from '../utils/logger.js';
 import { getConfig } from '../config/index.js';
 import { eventBus } from '../core/events/EventBus.js';
-import { alertRepository } from '../storage/repositories/AlertRepository.js';
 import type { Alert } from '../core/types/alerts.js';
 
 const logger = createLogger('TelegramSender');
@@ -37,7 +36,6 @@ function formatAlert(alert: Alert): string {
     TVL_CHANGE: '📈',
     TOKEN_EVENT: '🪙',
     GOVERNANCE: '🏛',
-    SECURITY: '🚨',
     NARRATIVE: '📊',
     STABLECOIN_DEPEG: '⚠️',
     // Phase 2 emojis
@@ -56,10 +54,6 @@ function formatAlert(alert: Alert): string {
     const { changePercent, previousTVL, currentTVL } = alert.details.tvlChange;
     const sign = changePercent >= 0 ? '+' : '';
     msg += `\nTVL: ${sign}${changePercent.toFixed(1)}% ($${formatNum(previousTVL)} → $${formatNum(currentTVL)})\n`;
-  }
-
-  if (alert.details.security?.severityLevel) {
-    msg += `\nSeverity: ${alert.details.security.severityLevel}\n`;
   }
 
   // Phase 2 detail formatting
@@ -140,7 +134,6 @@ export class TelegramSender {
         );
 
         if (result.messageId) {
-          alertRepository.save(alert, chatId, result.messageId);
           eventBus.emit('alert:sent', { alertId: alert.id, chatId, messageId: result.messageId });
           logger.info(`Alert sent to ${chatId}/${this.messageThreadId}: ${alert.title}`);
         }

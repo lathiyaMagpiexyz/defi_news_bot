@@ -2,7 +2,6 @@ import { BaseCollector } from '../BaseCollector.js';
 import { getDefillamaClient } from '../../services/HttpClient.js';
 import { getRateLimiter } from '../../services/RateLimiter.js';
 import { eventBus } from '../../core/events/EventBus.js';
-import { protocolRepository } from '../../storage/repositories/ProtocolRepository.js';
 import { getConfig } from '../../config/index.js';
 import { AlertSource } from '../../core/types/alerts.js';
 import type {
@@ -98,28 +97,6 @@ export class DefiLlamaCollector extends BaseCollector {
       tvl: c.tvl || 0,
       tokenSymbol: c.tokenSymbol,
     }));
-
-    // Store protocol states for TVL tracking
-    const watchlist = config.collectors.defillama.watchlist;
-
-    for (const protocol of transformedProtocols) {
-      // Skip if watchlist is set and protocol is not in it
-      if (watchlist.length > 0 && !watchlist.includes(protocol.slug)) {
-        continue;
-      }
-
-      // Skip protocols with very low TVL
-      if (protocol.tvl < 100000) {
-        continue;
-      }
-
-      protocolRepository.upsert(
-        protocol.slug,
-        protocol.name,
-        protocol.tvl,
-        protocol.chainTvls
-      );
-    }
 
     // Emit raw data event
     const rawData: RawTVLData = {
