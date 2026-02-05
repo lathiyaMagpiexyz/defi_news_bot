@@ -1,7 +1,6 @@
 import type { Context, ScheduledEvent } from 'aws-lambda';
 import { createLogger } from './utils/logger.js';
 import { getConfig } from './config/index.js';
-import { database } from './storage/Database.js';
 import { getTelegramSender } from './telegram/TelegramSender.js';
 import { getCollectorManager } from './collectors/CollectorManager.js';
 import { getSignalProcessor } from './processors/SignalProcessor.js';
@@ -30,10 +29,6 @@ export async function handler(
     const config = getConfig();
     logger.info(`Environment: ${config.app.environment}`);
 
-    // Initialize database
-    logger.info('Initializing database...');
-    database.initialize();
-
     // Initialize signal processor (subscribes to collector events)
     logger.info('Initializing signal processor...');
     getSignalProcessor();
@@ -57,7 +52,6 @@ export async function handler(
 
     // Cleanup
     eventBus.emit('system:shutdown', undefined);
-    database.close();
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(`Lambda completed successfully in ${duration}s`);
@@ -72,13 +66,6 @@ export async function handler(
     };
   } catch (error) {
     logger.error('Lambda handler failed:', error);
-
-    // Attempt cleanup on error
-    try {
-      database.close();
-    } catch {
-      // Ignore close errors
-    }
 
     return {
       statusCode: 500,

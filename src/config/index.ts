@@ -2,7 +2,7 @@ import { config as dotenvConfig } from 'dotenv';
 import { readFileSync, existsSync } from 'fs';
 import { parse as parseYaml } from 'yaml';
 import { configSchema, keywordsSchema, type AppConfig, type KeywordsConfig } from './schema.js';
-import { AlertCategory, AlertPriority } from '../core/types/alerts.js';
+import { AlertCategory } from '../core/types/alerts.js';
 
 // Load environment variables
 dotenvConfig();
@@ -56,9 +56,6 @@ function mergeConfigs(yamlConfig: Record<string, unknown>): Record<string, unkno
     },
     app: {
       environment: process.env['NODE_ENV'] as 'development' | 'production' | undefined,
-    },
-    storage: {
-      databasePath: process.env['DATABASE_PATH'],
     },
   };
 
@@ -202,28 +199,6 @@ function getDefaultKeywords(): KeywordsConfig {
         negative: ['temperature check', 'draft'],
         accounts: ['MakerDAO', 'AaveAave', 'compikiyo', 'CurveFinance'],
         hashtags: ['#governance', '#DAO'],
-      },
-      [AlertCategory.SECURITY]: {
-        primary: [
-          'exploit',
-          'hack',
-          'drained',
-          'stolen',
-          'vulnerability',
-          'paused',
-          'emergency',
-          'attack',
-          'flash loan attack',
-          'reentrancy',
-          'oracle manipulation',
-          'rug pull',
-          'audit',
-          'critical',
-        ],
-        secondary: ['investigating', 'funds at risk', 'warning', 'suspicious', 'abnormal'],
-        negative: [],
-        accounts: ['PeckShieldAlert', 'BlockSecTeam', 'certikiAlert', 'SlowMist_Team', 'samczsun'],
-        hashtags: ['#exploit', '#hack', '#security'],
       },
       [AlertCategory.NARRATIVE]: {
         primary: [

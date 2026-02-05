@@ -1,6 +1,5 @@
 import { createLogger } from './utils/logger.js';
 import { getConfig } from './config/index.js';
-import { database } from './storage/Database.js';
 import { getTelegramSender } from './telegram/TelegramSender.js';
 import { getCollectorManager } from './collectors/CollectorManager.js';
 import { getSignalProcessor } from './processors/SignalProcessor.js';
@@ -17,10 +16,6 @@ async function runCronJob(): Promise<void> {
     // Load configuration
     const config = getConfig();
     logger.info(`Environment: ${config.app.environment}`);
-
-    // Initialize database
-    logger.info('Initializing database...');
-    database.initialize();
 
     // Initialize signal processor (subscribes to collector events)
     logger.info('Initializing signal processor...');
@@ -46,22 +41,12 @@ async function runCronJob(): Promise<void> {
     // Emit system shutdown event
     eventBus.emit('system:shutdown', undefined);
 
-    // Close database
-    database.close();
-
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(`Cron job completed successfully in ${duration}s`);
 
     process.exit(0);
   } catch (error) {
     logger.error('Cron job failed:', error);
-
-    // Attempt to close database on error
-    try {
-      database.close();
-    } catch {
-      // Ignore close errors
-    }
 
     process.exit(1);
   }

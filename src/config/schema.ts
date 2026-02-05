@@ -142,14 +142,6 @@ export const configSchema = z.object({
         cooldownMs: 600000,
         thresholds: {},
       }),
-      [AlertCategory.SECURITY]: categoryConfigSchema.default({
-        enabled: true,
-        priority: AlertPriority.CRITICAL,
-        cooldownMs: 0,
-        thresholds: {
-          minLossValueUsd: 100000,
-        },
-      }),
       [AlertCategory.NARRATIVE]: categoryConfigSchema.default({
         enabled: true,
         priority: AlertPriority.LOW,
@@ -193,13 +185,6 @@ export const configSchema = z.object({
         },
       }),
     }),
-  }),
-
-  storage: z.object({
-    databasePath: z.string().default('./data/defi_bot.db'),
-    backupEnabled: z.boolean().default(true),
-    backupIntervalHours: z.number().min(1).default(24),
-    maxAlertHistoryDays: z.number().min(1).default(30),
   }),
 
   rateLimit: z.object({
