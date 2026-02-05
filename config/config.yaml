@@ -257,12 +257,6 @@ alerts:
       thresholds:
         minPercentIncrease: 200
 
-storage:
-  databasePath: "./data/defi_bot.db"
-  backupEnabled: true
-  backupIntervalHours: 24
-  maxAlertHistoryDays: 30
-
 rateLimit:
   defillama:
     requestsPerMinute: 20

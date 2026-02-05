@@ -55,23 +55,3 @@ export interface MarketData {
   atl: number;
   atlDate: Date;
 }
-
-// Database state types
-export interface ProtocolState {
-  slug: string;
-  name: string;
-  lastTvl: number;
-  lastTvlByChain: string;
-  lastCheckedAt: Date;
-  tvlHistory24h: string;
-  tvlHistory7d: string;
-}
-
-export interface UserSettings {
-  chatId: string;
-  subscribedCategories: string;
-  customThresholds: string;
-  isPaused: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}

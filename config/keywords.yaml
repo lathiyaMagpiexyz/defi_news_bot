@@ -2,31 +2,6 @@
 # Focused keywords for high-value alerts only
 
 categories:
-  # CRITICAL: Security incidents - VERY SPECIFIC keywords
-  SECURITY:
-    primary:
-      - "exploit"
-      - "hacked"
-      - "drained"
-      - "stolen"
-      - "emergency"
-      - "paused"
-      - "rug pull"
-      - "flash loan attack"
-      - "oracle manipulation"
-      - "funds at risk"
-      - "private key compromised"
-      - "bridge hack"
-      - "infinite mint"
-    secondary:
-      - "investigating"
-      - "suspicious"
-      - "abnormal"
-    negative:
-      - "test"
-      - "simulation"
-      - "fake"
-
   # CRITICAL: Stablecoin de-peg keywords
   STABLECOIN_DEPEG:
     primary:

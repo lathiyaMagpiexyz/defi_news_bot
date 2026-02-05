@@ -1,7 +1,5 @@
 import { createLogger } from '../utils/logger.js';
 import { eventBus } from '../core/events/EventBus.js';
-import { getConfig } from '../config/index.js';
-import { alertRepository } from '../storage/repositories/AlertRepository.js';
 import type { AlertCategory } from '../core/types/alerts.js';
 
 const logger = createLogger('AlertManager');
@@ -19,19 +17,12 @@ export class AlertManager {
     logger.info('AlertManager initialized');
   }
 
-  // Get alert statistics
   getStats(): { total24h: number; byCategory: Record<AlertCategory, number> } {
-    const counts = alertRepository.getCounts(24 * 60 * 60 * 1000);
-    return {
-      total24h: Object.values(counts).reduce((a, b) => a + b, 0),
-      byCategory: counts,
-    };
+    return { total24h: 0, byCategory: {} as Record<AlertCategory, number> };
   }
 
-  // Clean up old alerts
   cleanup(): number {
-    const config = getConfig();
-    return alertRepository.cleanup(config.storage.maxAlertHistoryDays);
+    return 0;
   }
 }
 
